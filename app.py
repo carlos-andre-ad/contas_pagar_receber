@@ -50,19 +50,18 @@ class App(ct.CTk):
         self.button_recebimentos = ct.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Recebimentos",fg_color="transparent", text_color=("gray10", "gray90"), 
                                                            hover_color=("gray70", "gray30"),image=self.logo_receber, anchor="w", command=self.button_recebimento_event)
         self.button_recebimentos.grid(row=2, column=0, sticky="ew")    
+
+        self.rct = REC.Recebimentos()
+        self.pg = PAG.Pagamentos()
         
         # frame pagamento
         self.frame_pagamento = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.frame_pagamento.grid_columnconfigure(2, weight=1)
-        pg = PAG.Pagamentos()
-        pg.pagar(self.frame_pagamento)
         
        # frame recebimento
         self.frame_recebimento = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.frame_recebimento.grid_columnconfigure(2, weight=1)   
-        rct = REC.Recebimentos()
-        rct.receber(self.frame_recebimento)      
-        
+           
         # default frame
         self.select_frame_by_name("pagar")
         ct.set_appearance_mode("Dark")   
@@ -83,10 +82,12 @@ class App(ct.CTk):
         self.button_recebimentos.configure(fg_color=("gray75", "gray25") if name == "receber" else "transparent")
 
         if name == "pagar":
+            self.pg.pagar(self.frame_pagamento)
             self.frame_pagamento.grid(row=0, column=1, sticky="nsew")
         else:
             self.frame_pagamento.grid_forget()
         if name == "receber":
+            self.rct.receber(self.frame_recebimento)  
             self.frame_recebimento.grid(row=0, column=1, sticky="nsew")
         else:
             self.frame_recebimento.grid_forget()     
