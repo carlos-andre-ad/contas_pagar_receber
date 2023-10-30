@@ -1,1 +1,1 @@
-### [Requisitos do Sistema](./Doc/Requisitos.pdf)
+### [Requisitos do Sistema](./Docs/Requisitos.pdf)
