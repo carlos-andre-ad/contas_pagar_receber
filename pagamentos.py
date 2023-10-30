@@ -7,7 +7,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from CTkToolTip import *
 
-   
+
 
 class Pagamentos():
     def __init__(self):
@@ -253,3 +253,5 @@ class Pagamentos():
     def reverse(self,tuples):
         new_tup = tuples[::-1]
         return new_tup   
+    
+    

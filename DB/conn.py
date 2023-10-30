@@ -2,6 +2,7 @@
 from tkinter import messagebox
 import os
 import psycopg2
+from dotenv import load_dotenv
 
 class Conexao():
     def __init__(self):
@@ -43,8 +44,14 @@ class Conexao():
         
 
     def conexao(self):
+        
+        load_dotenv()
+        
         try:
-            conn = psycopg2.connect(database="financeiro", user="postgres", password="758198758198", port="15432")
+            conn = psycopg2.connect(database=os.getenv('NAME'), 
+                                    user=os.getenv('USER'), 
+                                    password=os.getenv('PASS'), 
+                                    port=os.getenv('PORT'))
             if conn:
                 return conn
             
