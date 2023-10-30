@@ -1,13 +1,11 @@
 import customtkinter as ct
-from CTkToolTip import *
 import tkinter as tk
+from DB import contas_receber as cr
+from DB import pessoa
+from Utils import formatacao
 from tkinter import ttk
 from tkinter import messagebox
-import DB.contas_receber as cr
-import DB.pessoa as pessoa
-import Utils.formatacao as formatacao
-from PIL import Image
-   
+from CTkToolTip import *
 
 class Recebimentos():
     def __init__(self):
@@ -47,16 +45,16 @@ class Recebimentos():
         
         self.frame_recebimento_combobox_organizacoes = ct.CTkComboBox(frame_recebimento, values=[item['nome'] for item in self.organizacoes],
                                                                         command=self.selecionar_organizacao, variable=self.ctk_combobox_var_organizacao)
-        self.frame_recebimento_combobox_organizacoes.grid(row=1, column=1, padx=5, pady=5, sticky="w") 
+        self.frame_recebimento_combobox_organizacoes.grid(row=1, column=1, padx=10, pady=5, sticky="w") 
         self.frame_recebimento_combobox_organizacoes.tabindex = 1
         
         self.frame_recebimento_entry_descricao = ct.CTkEntry(frame_recebimento, textvariable=self.ctk_entry_var_descricao, height=30, width=905)
-        self.frame_recebimento_entry_descricao.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+        self.frame_recebimento_entry_descricao.grid(row=2, column=1, padx=10, pady=5, sticky="w")
         self.frame_recebimento_entry_descricao.tabindex = 2
         self.frame_recebimento_entry_descricao.bind("<Tab>", format.mover_foco)
         
         self.frame_recebimento_entry_data = ct.CTkEntry(frame_recebimento, textvariable=self.ctk_entry_var_data, height=30, width=150)
-        self.frame_recebimento_entry_data.grid(row=3, column=1, padx=5, pady=5, sticky="w")     
+        self.frame_recebimento_entry_data.grid(row=3, column=1, padx=10, pady=5, sticky="w")     
         self.frame_recebimento_entry_data.bind("<KeyPress>", lambda event: format.formatar_data(event, self.frame_recebimento_entry_data))  
         self.frame_recebimento_entry_data.tabindex = 3
         self.frame_recebimento_entry_data.bind("<Tab>", format.mover_foco)    
@@ -68,12 +66,12 @@ class Recebimentos():
         self.frame_recebimento_entry_valor.bind("<Tab>", format.mover_foco)
             
         self.frame_recebimento_textbox_obs = ct.CTkTextbox(frame_recebimento,  width=910, height=100, border_width=2)
-        self.frame_recebimento_textbox_obs.grid(row=4, column=1, padx=5, pady=5, sticky="w")    
+        self.frame_recebimento_textbox_obs.grid(row=4, column=1, padx=10, pady=5, sticky="w")    
         self.frame_recebimento_textbox_obs.tabindex = 5
         self.frame_recebimento_textbox_obs.bind("<Tab>", format.mover_foco)
         
         self.frame_recebimento_button_novo = ct.CTkButton(frame_recebimento, text="Novo", command=self.novo,  compound="right", text_color=("gray10", "#DCE4EE"))
-        self.frame_recebimento_button_novo.grid(row=5, column=1, padx=5, pady=5, sticky="w")   
+        self.frame_recebimento_button_novo.grid(row=5, column=1, padx=10, pady=5, sticky="w")   
         CTkToolTip(self.frame_recebimento_button_novo, delay=0.5, message="Iniciar um novo lançamento!", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
         
         self.frame_recebimento_button_salvar = ct.CTkButton(frame_recebimento, text="Salvar", command=self.salvar, compound="right", text_color=("gray10", "#DCE4EE"))
@@ -104,7 +102,7 @@ class Recebimentos():
         
         self.tree_view_data.bind("<Double-1>", lambda event: self.on_item_double_click(self.tree_view_data)) 
         self.tree_view_data.tag_configure('orow', background='#EEEEEE')
-        self.tree_view_data.grid(row=6, column=1, columnspan=4, rowspan=5, padx=5, pady=30, sticky="w")
+        self.tree_view_data.grid(row=6, column=1, columnspan=4, rowspan=5, padx=10, pady=30, sticky="w")
         
         rd = cr.ContasReceber()
         lst = rd.listar(False)
@@ -191,7 +189,7 @@ class Recebimentos():
         id = values[0]
         bus = cr.ContasReceber()
         res = bus.buscar(id, True)
-        if len(res) > 0:
+        if res != None:
             self.ctk_combobox_var_organizacao.set(res['organizacao'])
             self.ctk_entry_var_id.set(res['id'])
             self.ctk_entry_var_descricao.set(res['descricao'])

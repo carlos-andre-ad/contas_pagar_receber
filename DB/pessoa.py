@@ -56,7 +56,10 @@ class Pessoa():
             
             resultado = conexao.tupla_ou_lista(cursor,tupla)
             conn.close()
-            return resultado[0]
+            if len(resultado) == 0:
+                return None
+            else:
+                return resultado[0]
         
     def buscar_nome(self,nome, tupla=True):
         conexao = bd.Conexao()
@@ -67,7 +70,10 @@ class Pessoa():
             
             resultado = conexao.tupla_ou_lista(cursor,tupla)
             conn.close()
-            return resultado[0]
+            if len(resultado) == 0:
+                return None
+            else:
+                return resultado[0]
         
         
     def listar(self, tupla = False):

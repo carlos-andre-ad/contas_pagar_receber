@@ -19,7 +19,7 @@ class ContasPagar():
             
             p = pessoa.Pessoa()
             org = p.buscar_nome(o, True)
-            if (org['nome'] == ""):
+            if (org == None):
                 messagebox.showinfo("Atenção", f"Não foi possivel encontrar a organização {o} ")
                 return False
             
@@ -72,7 +72,10 @@ class ContasPagar():
                                     WHERE c.id = {id}""")
             resultado = conexao.tupla_ou_lista(cursor,tupla)
             conn.close()
-            return resultado[0]
+            if len(resultado) == 0:
+                return None
+            else:
+                return resultado[0]
         
         
     def listar(self, tupla=False):

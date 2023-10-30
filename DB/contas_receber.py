@@ -2,6 +2,7 @@
 import DB.conn as bd
 import DB.pessoa as pessoa
 from tkinter import messagebox
+from datetime import datetime
 
 class ContasReceber():
     def __init__(self):
@@ -20,6 +21,8 @@ class ContasReceber():
             if (org['nome'] == ""):
                 messagebox.showinfo("Atenção", f"Não foi possivel encontrar a organização {o} ")
                 return False           
+            
+            data = datetime.strptime(data, "%d/%m/%Y").strftime("%Y-%m-%d")
             
             if (id == ""):
                 cursor.execute("INSERT INTO contas_receber(descricao, data_recebimento,  valor, observacoes,id_organizacao) " +
@@ -63,7 +66,10 @@ class ContasReceber():
                                     WHERE c.id = {id}""")
             resultado = conexao.tupla_ou_lista(cursor,tupla)
             conn.close()
-            return resultado[0]
+            if len(resultado) == 0:
+                return None
+            else:
+                return resultado[0]
         
         
     def listar(self, tupla = False):

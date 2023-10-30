@@ -44,7 +44,7 @@ class Conexao():
 
     def conexao(self):
         try:
-            conn = psycopg2.connect(database="contas", user="postgres", password="758198758198", port="15432")
+            conn = psycopg2.connect(database="financeiro", user="postgres", password="758198758198", port="15432")
             if conn:
                 return conn
             
