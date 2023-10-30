@@ -34,11 +34,14 @@ class App(ct.CTk):
         self.navigation_frame = ct.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.navigation_frame.grid_rowconfigure(4, weight=1)
+        
+        self.navigation_frame_label = ct.CTkLabel(self.navigation_frame, text="  Controle Financeiro", image=self.logo_image, compound="left", font=ct.CTkFont(size=15, weight="bold"))
+        self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=5) 
   
         ct.set_appearance_mode("Dark")
         
         self.email = ""
-        self.tela_principal()
+        self.login()
         
     def login(self):
         
@@ -95,9 +98,6 @@ class App(ct.CTk):
                     messagebox.showwarning("LOGIN", "Email ou Senha inválido!")
     
     def tela_principal(self):
-                
-        self.navigation_frame_label = ct.CTkLabel(self.navigation_frame, text="  Controle Financeiro", image=self.logo_image, compound="left", font=ct.CTkFont(size=15, weight="bold"))
-        self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=5) 
         
         self.navigation_frame_email_logado = ct.CTkLabel(self.navigation_frame, text=self.email, compound="left", font=ct.CTkFont(size=12, weight="bold"))
         self.navigation_frame_email_logado.grid(row=1, column=0, padx=5, pady=5, sticky="w")           
