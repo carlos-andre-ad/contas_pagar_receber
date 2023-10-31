@@ -1,6 +1,6 @@
 
 import DB.conn as bd
-import DB.pessoa as pessoa
+import DB.entidades.pessoa as pessoa
 from tkinter import messagebox
 from datetime import datetime
 

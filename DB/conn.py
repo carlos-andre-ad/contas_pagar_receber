@@ -19,6 +19,7 @@ class Conexao():
                                     conteudo text  NOT NULL,
                                     data date NOT NULL
                                     )""")
+                conn.commit()
 
                 dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "migration")
                 for sql in os.listdir(dir):
@@ -30,16 +31,17 @@ class Conexao():
                             
                             with open(sql_path, 'r') as f:
                                 conteudo = f.read()
+                                
                             comando.execute(conteudo)
                             comando.execute("INSERT INTO migration(arquivo, conteudo, data) VALUES('"+ sql + "','" + conteudo +"', CURRENT_DATE )")
-                
-                conn.commit()   
+                            conn.commit()
                 conn.close()
                 return True
         except Exception as e:
             conn.rollback()
             conn.close()
-            messagebox.showerror("Erro", f"Erro ao criar tabela: {str(e)}")
+            print(e)
+            messagebox.showerror("Erro", f"Erro executando script: {str(e)}")
             return False
         
 

@@ -1,6 +1,6 @@
 
 import DB.conn as bd
-import DB.pessoa as pessoa
+import DB.entidades.pessoa as pessoa
 from tkinter import messagebox
 from datetime import datetime
 
@@ -18,9 +18,9 @@ class ContasReceber():
             
             p = pessoa.Pessoa()
             org = p.buscar_nome(o, True)
-            if (org['nome'] == ""):
+            if (org == None):
                 messagebox.showinfo("Atenção", f"Não foi possivel encontrar a organização {o} ")
-                return False           
+                return False          
             
             data = datetime.strptime(data, "%d/%m/%Y").strftime("%Y-%m-%d")
             

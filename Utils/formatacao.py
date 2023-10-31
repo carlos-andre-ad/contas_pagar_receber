@@ -5,7 +5,7 @@ class Util():
     def __init__(self):
         pass    
     
-    def mover_foco(event):
+    def mover_foco(self, event):
         widget = event.widget
         proximo_widget = widget.tk_focusNext()
         if proximo_widget:

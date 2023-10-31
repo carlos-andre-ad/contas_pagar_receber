@@ -1,7 +1,7 @@
 import customtkinter as ct
 import tkinter as tk
-from DB import contas_receber as cr
-from DB import pessoa
+from DB.entidades import contas_receber as cr
+from DB.entidades import pessoa
 from Utils import formatacao
 from tkinter import ttk
 from tkinter import messagebox
@@ -115,7 +115,16 @@ class Recebimentos():
 
     def selecionar_organizacao(self, selected):
         self.ctk_combobox_var_organizacao.set( selected)
-                        
+              
+              
+    def ordenar_por_coluna(self, coluna):
+        estado_atual = self.ordenacao_colunas[coluna]
+        data = [(self.tree_view_data.set(item, coluna), item) for item in self.tree_view_data.get_children('')]
+        data.sort(reverse=estado_atual == "crescente", key=lambda x: x[0])
+        for index, (val, item) in enumerate(data):
+            self.tree_view_data.move(item, '', index)
+        self.ordenacao_colunas[coluna] = "crescente" if estado_atual == "decrescente" else "decrescente"                        
+
            
     def novo(self):
         self.ctk_entry_var_id.set("")

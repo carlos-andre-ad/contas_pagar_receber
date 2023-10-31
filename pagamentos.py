@@ -1,7 +1,7 @@
 import customtkinter as ct
 import tkinter as tk
-from DB import contas_pagar as cp
-from DB import pessoa
+from DB.entidades import contas_pagar as cp
+from DB.entidades import pessoa
 from Utils import formatacao
 from tkinter import ttk
 from tkinter import messagebox
@@ -148,7 +148,6 @@ class Pagamentos():
         data.sort(reverse=estado_atual == "crescente", key=lambda x: x[0])
         for index, (val, item) in enumerate(data):
             self.tree_view_data.move(item, '', index)
-        # Inverta o estado de ordenação para a próxima vez
         self.ordenacao_colunas[coluna] = "crescente" if estado_atual == "decrescente" else "decrescente"         
            
     def novo(self):

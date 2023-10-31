@@ -10,6 +10,12 @@ class Login():
         conn = conexao.conexao()
         if (conn != None):
             cursor = conn.cursor()
+            cursor.execute("SELECT id from usuario")
+            results = cursor.fetchall()
+            if len(results) == 0:
+                cursor.execute(f"""INSERT INTO usuario(email,senha) values('{email}','{senha}')""")
+                conn.commit()        
+            
             cursor.execute(f"""SELECT id FROM usuario WHERE email = '{email}' AND senha = '{senha}'""")
             
             resultado = conexao.tupla_ou_lista(cursor,tupla)

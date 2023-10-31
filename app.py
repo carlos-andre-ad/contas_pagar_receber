@@ -3,8 +3,9 @@ import tkinter as tk
 import os
 import pagamentos as PAG
 import recebimentos as REC
+import organizacao as ORG
 from DB import conn as bd
-from DB import login as login
+from DB.entidades import login as login
 from Utils import formatacao
 from tkinter import messagebox
 from PIL import Image
@@ -33,11 +34,11 @@ class App(ct.CTk):
         # cria frame de navegação
         self.navigation_frame = ct.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(4, weight=1)
+        self.navigation_frame.grid_rowconfigure(5, weight=1)
         
         self.navigation_frame_label = ct.CTkLabel(self.navigation_frame, text="  Controle Financeiro", image=self.logo_image, compound="left", font=ct.CTkFont(size=15, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=5) 
-  
+
         ct.set_appearance_mode("Dark")
         
         self.email = ""
@@ -47,11 +48,11 @@ class App(ct.CTk):
         
         self.ctk_entry_var_email = tk.StringVar()
         self.ctk_entry_var_senha = tk.StringVar()
-        # frame pagamento
+        # frame login
         frame_login = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
         frame_login.grid_columnconfigure(1, weight=1)
         frame_login.grid(row=0, column=1, sticky="nsew")
-           
+
         titulo_login = ct.CTkLabel(frame_login, text="Faça login para continuar", compound="left", font=ct.CTkFont(size=25, weight="bold"))
         titulo_login.grid(row=0, column=1, padx=5, pady=50, sticky="n")
         
@@ -99,8 +100,8 @@ class App(ct.CTk):
     
     def tela_principal(self):
         
-        self.navigation_frame_email_logado = ct.CTkLabel(self.navigation_frame, text=self.email, compound="left", font=ct.CTkFont(size=12, weight="bold"))
-        self.navigation_frame_email_logado.grid(row=1, column=0, padx=5, pady=5, sticky="w")           
+        self.frame_login_email = ct.CTkLabel(self.navigation_frame, text=self.email, compound="left", font=ct.CTkFont(size=12, weight="bold"))
+        self.frame_login_email.grid(row=1, column=0, padx=5, pady=5, sticky="w")           
                         
         # botão navegação do pagamento
         self.button_pagamento = ct.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Pagamentos",fg_color="transparent", 
@@ -110,10 +111,16 @@ class App(ct.CTk):
          # botão navegação do recebimento
         self.button_recebimentos = ct.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Recebimentos",fg_color="transparent", text_color=("gray10", "gray90"), 
                                                            hover_color=("gray70", "gray30"),image=self.logo_receber, anchor="w", command=self.button_recebimento_event)
-        self.button_recebimentos.grid(row=3, column=0, sticky="ew")          
+        self.button_recebimentos.grid(row=3, column=0, sticky="ew")
+        
+         # botão navegação organização
+        self.button_organizacao = ct.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Organizações",fg_color="transparent", text_color=("gray10", "gray90"), 
+                                                           hover_color=("gray70", "gray30"),image=self.logo_receber, anchor="w", command=self.button_organizacao_event)
+        self.button_organizacao.grid(row=4, column=0, sticky="ew")        
 
         self.rct = REC.Recebimentos()
-        self.pg = PAG.Pagamentos()
+        self.pg  = PAG.Pagamentos()
+        self.og  = ORG.Organizacao()
         
         # frame pagamento
         self.frame_pagamento = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -122,6 +129,10 @@ class App(ct.CTk):
        # frame recebimento
         self.frame_recebimento = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.frame_recebimento.grid_columnconfigure(2, weight=1)   
+        
+       # frame organização
+        self.frame_organizacao = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.frame_organizacao.grid_columnconfigure(2, weight=1)          
            
         # default frame
         self.select_frame_by_name("pagar")
@@ -138,7 +149,8 @@ class App(ct.CTk):
         self.menu_bar.delete(1,2)
         self.button_pagamento.grid_forget()
         self.button_recebimentos.grid_forget()
-        self.navigation_frame_email_logado.configure(text="")    
+        self.button_organizacao.grid_forget()
+        self.frame_login_email.configure(text="")    
         
     def confirmar_fechar_janela(self):
         resposta = messagebox.askokcancel("Confirmação", "Deseja realmente sair?")
@@ -149,22 +161,29 @@ class App(ct.CTk):
         self.select_frame_by_name("pagar")    
         
     def button_recebimento_event(self):
-        self.select_frame_by_name("receber")             
+        self.select_frame_by_name("receber") 
+        
+    def button_organizacao_event(self):
+        self.select_frame_by_name("organizacao")          
         
     def select_frame_by_name(self, name):
         self.button_pagamento.configure(fg_color=("gray75", "gray25") if name == "pagar" else "transparent")
         self.button_recebimentos.configure(fg_color=("gray75", "gray25") if name == "receber" else "transparent")
-
+        self.button_organizacao.configure(fg_color=("gray75", "gray25") if name == "organizacao" else "transparent")
+        
+        self.frame_organizacao.grid_forget()
+        self.frame_pagamento.grid_forget()
+        self.frame_recebimento.grid_forget() 
+        
+        if name == "organizacao":
+            self.frame_organizacao.grid(row=0, column=1, sticky="nsew")
+            self.og.organizacao(self.frame_organizacao)
         if name == "pagar":
             self.frame_pagamento.grid(row=0, column=1, sticky="nsew")
             self.pg.pagar(self.frame_pagamento)
-        else:
-            self.frame_pagamento.grid_forget()
         if name == "receber":
             self.frame_recebimento.grid(row=0, column=1, sticky="nsew")
-            self.rct.receber(self.frame_recebimento)  
-        else:
-            self.frame_recebimento.grid_forget()     
+            self.rct.receber(self.frame_recebimento)     
         
         
 if __name__ == "__main__":

@@ -189,10 +189,10 @@ CACHE 1
 ),
   "nome" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
   "id_organizacao" int4,
-  "tipo_fornecedor" bool,
-  "tipo_prestador" bool,
-  "tipo_cliente" bool,
-  "tipo_instit_financ" bool
+  "tipo_fornecedor" bool DEFAULT false,
+  "tipo_prestador" bool DEFAULT false,
+  "tipo_cliente" bool DEFAULT false,
+  "tipo_instit_financ" bool DEFAULT false
 )
 ;
 
