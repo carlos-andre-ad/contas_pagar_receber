@@ -13,7 +13,7 @@ from PIL import Image
 class App(ct.CTk):
     def __init__(self):
         super().__init__()
-        self.format = formatacao.Util()
+        self.format = formatacao.Util()   
         
         self.protocol("WM_DELETE_WINDOW", self.confirmar_fechar_janela)
 
@@ -48,6 +48,8 @@ class App(ct.CTk):
         
         self.ctk_entry_var_email = tk.StringVar()
         self.ctk_entry_var_senha = tk.StringVar()
+        self.ctk_entry_var_senha.set('123456')
+        self.ctk_entry_var_email.set('admin@admin.com')
         # frame login
         frame_login = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
         frame_login.grid_columnconfigure(1, weight=1)
@@ -63,6 +65,7 @@ class App(ct.CTk):
         inpEmail.grid(row=2, column=1, padx=5, pady=1, sticky="n") 
         inpEmail.tabindex = 2
         inpEmail.bind("<Tab>", self.format.mover_foco)
+        #inpEmail.bind("<Return>", self.verificar_login)
         
         lblSenha = ct.CTkLabel(frame_login, text="Senha", compound="left", font=ct.CTkFont(size=14, weight="bold"))
         lblSenha.grid(row=3, column=1, padx=5, pady=1, sticky="n")          
@@ -70,13 +73,14 @@ class App(ct.CTk):
         inpSenha = ct.CTkEntry(frame_login, textvariable=self.ctk_entry_var_senha, height=30, width=400, placeholder_text="Entre com a senha", show="*")
         inpSenha.grid(row=4, column=1, padx=5, pady=1, sticky="n") 
         inpSenha.tabindex = 3
-        inpSenha.bind("<Tab>", self.format.mover_foco)     
+        inpSenha.bind("<Tab>", self.format.mover_foco)
+        #inpSenha.bind("<Return>", self.verificar_login)
         
-        btnLogar = ct.CTkButton(frame_login, text="Login", command=self.Verificar_Login, compound="right",  text_color=("gray10", "#DCE4EE"))
-        btnLogar.grid(row=5, column=1, padx=5, pady=5, sticky="n")     
+        btnLogar = ct.CTkButton(frame_login, text="Login", command=self.verificar_login, compound="right",  text_color=("gray10", "#DCE4EE"))
+        btnLogar.grid(row=5, column=1, padx=5, pady=5, sticky="n")
         
         
-    def Verificar_Login(self):
+    def verificar_login(self):
         
         self.email    = str(self.ctk_entry_var_email.get())
         senha    = str(self.ctk_entry_var_senha.get())       
@@ -100,6 +104,10 @@ class App(ct.CTk):
     
     def tela_principal(self):
         
+        self.recebimentos = REC.Recebimentos()
+        self.pagamentos  = PAG.Pagamentos()
+        self.organizacao  = ORG.Organizacao()          
+        
         self.frame_login_email = ct.CTkLabel(self.navigation_frame, text=self.email, compound="left", font=ct.CTkFont(size=12, weight="bold"))
         self.frame_login_email.grid(row=1, column=0, padx=5, pady=5, sticky="w")           
                         
@@ -117,10 +125,6 @@ class App(ct.CTk):
         self.button_organizacao = ct.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Organizações",fg_color="transparent", text_color=("gray10", "gray90"), 
                                                            hover_color=("gray70", "gray30"),image=self.logo_receber, anchor="w", command=self.button_organizacao_event)
         self.button_organizacao.grid(row=4, column=0, sticky="ew")        
-
-        self.rct = REC.Recebimentos()
-        self.pg  = PAG.Pagamentos()
-        self.og  = ORG.Organizacao()
         
         # frame pagamento
         self.frame_pagamento = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -177,13 +181,13 @@ class App(ct.CTk):
         
         if name == "organizacao":
             self.frame_organizacao.grid(row=0, column=1, sticky="nsew")
-            self.og.organizacao(self.frame_organizacao)
+            self.organizacao.organizacao(self.frame_organizacao)
         if name == "pagar":
             self.frame_pagamento.grid(row=0, column=1, sticky="nsew")
-            self.pg.pagar(self.frame_pagamento)
+            self.pagamentos.pagar(self.frame_pagamento)
         if name == "receber":
             self.frame_recebimento.grid(row=0, column=1, sticky="nsew")
-            self.rct.receber(self.frame_recebimento)     
+            self.recebimentos.receber(self.frame_recebimento)     
         
         
 if __name__ == "__main__":

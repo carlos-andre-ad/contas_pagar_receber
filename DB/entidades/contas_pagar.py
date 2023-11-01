@@ -29,7 +29,6 @@ class ContasPagar():
             if (id == ""):
                 cursor.execute("INSERT INTO contas_pagar(descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes, id_organizacao) " +
                                "VALUES ('" + str(desc) + "','" + data_pag + "','" + data_ven + "'," + valor + "," + valor_pago + ",'" + obs + "'," + str(org['id']) + ")")
-                
             else:
                 if len(self.buscar(int(id))) == 0:
                     messagebox.showinfo("Atenção", f"O ID {id} não está presente na tabela")
@@ -87,9 +86,9 @@ class ContasPagar():
                                     descricao, 
                                     to_char(data_pagamento, 'DD/MM/YYYY') as data_pagamento, 
                                     to_char(data_vencimento, 'DD/MM/YYYY') as data_vencimento,
-                                    to_char(valor, 'R$999,999,999.99') as valor,
-                                    to_char(valor_pago, 'R$999,999,999.99') as valor_pago
-                                FROM contas_pagar""")
+                                    valor,
+                                    valor_pago
+                                FROM contas_pagar order by id""")
             
             resultado = conexao.tupla_ou_lista(cursor,tupla)
             conn.close()

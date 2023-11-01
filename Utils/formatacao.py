@@ -1,9 +1,12 @@
 
 import tkinter as tk
-
+import locale
+import re
 class Util():
     def __init__(self):
         pass    
+    
+
     
     def mover_foco(self, event):
         widget = event.widget
@@ -23,7 +26,7 @@ class Util():
             entry_data.delete(10, tk.END)
         elif not event.keysym in ('BackSpace', 'Left', 'Right'):
             if not event.char.isdigit():
-                return 'break'  # Impede que caracteres não numéricos sejam inseridos
+                return 'break' 
         return None
     
     def formatar_valor(self, event, entry):
@@ -39,3 +42,13 @@ class Util():
             entry.insert(0, entrada_formatada)
 
         return None  
+    
+    def formatar_valor_real(self, valor):
+        #locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+        #valor_formatado = locale.currency(valor, grouping=True, symbol="R$")
+        return valor
+    
+    def extrair_numeros(self, texto):
+        numeros = re.findall(r'\d+', texto)
+        numeros_como_string = ''.join(numeros)
+        return numeros_como_string    
