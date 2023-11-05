@@ -32,16 +32,32 @@ python app.py
 
 #### Cadastrar Contas à Pagar
 - Tela de lançamentos das contas à pagar, as contas são cadastradas por organização
-- ![Contas à Pagar](screenshot/contas_pagar.png)
+- ![Contas a Pagar](screenshot/contas_pagar.png)
 
 #### Cadastrar Contas à Receber
 - Tela de lançamentos das contas à receber, as contas são cadastradas por organização
-- ![Contas à Receber](screenshot/contas_receber.png)
+- ![Contas a Receber](screenshot/contas_receber.png)
 
 #### Cadastrar de Organizações
 - Tela de cadastro das organizações de controle financeiro
-- ![Contas à Pagar](screenshot/organizacao.png)
+- ![Organizações](screenshot/organizacao.png)
+
+
+### Prints das tabelas no BD
+#### Tabela de Contas a Pagar
+- ![Tabela de Contas a Pagar](screenshot/tabela_contas_pagar.png)
+
+
+#### Tabela de Contas a Receber
+- ![Tabela de Contas a Receber](screenshot/tabela_contas_receber.png)
+  
+
+#### Tabela de Organizações
+- ![Tabela das Organizações](screenshot/tabela_organizacoes.png)
+
+#### Tabela de Usuários
+- ![Tabela de Usuárioa](screenshot/tabela_usuarios.png)
+
 
 ## Vídeo de Demonstração
 [![Vídeo](screenshot/video.png)](https://youtu.be/YP4GqdUU0Q8)
-
