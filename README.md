@@ -1,4 +1,5 @@
 
+## Documentação
 ### [Requisitos do Sistema](./Docs/Requisitos.pdf)
 ## Instalação
 Requer python 3.11
@@ -41,5 +42,6 @@ python app.py
 - Tela de cadastro das organizações de controle financeiro
 - ![Contas à Pagar](screenshot/organizacao.png)
 
-[![Vídeo de Demonstração](screenshot/video.png)](https://youtu.be/YP4GqdUU0Q8)
+## Vídeo de Demonstração
+[![Vídeo](screenshot/video.png | width=400 | height=400)](https://youtu.be/YP4GqdUU0Q8)
 
