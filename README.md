@@ -1,6 +1,6 @@
 
 ## Documentações
-### .[Requisitos do Sistema](./Docs/Requisitos.pdf)
+### [Requisitos do Sistema](./Docs/Requisitos.pdf)
 ## Instalação
 Requer python 3.11
 ### Bibliotecas
@@ -43,5 +43,5 @@ python app.py
 - ![Contas à Pagar](screenshot/organizacao.png)
 
 ## Vídeo de Demonstração
-[![Vídeo](screenshot/video.png | width=400)](https://youtu.be/YP4GqdUU0Q8)
+[![Vídeo](screenshot/video.png)](https://youtu.be/YP4GqdUU0Q8)
 
