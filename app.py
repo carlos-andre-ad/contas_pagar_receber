@@ -48,8 +48,8 @@ class App(ct.CTk):
         
         self.ctk_entry_var_email = tk.StringVar()
         self.ctk_entry_var_senha = tk.StringVar()
-        self.ctk_entry_var_senha.set('123456')
-        self.ctk_entry_var_email.set('admin@admin.com')
+        #self.ctk_entry_var_senha.set('123456')
+        #self.ctk_entry_var_email.set('admin@admin.com')
         # frame login
         frame_login = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
         frame_login.grid_columnconfigure(1, weight=1)

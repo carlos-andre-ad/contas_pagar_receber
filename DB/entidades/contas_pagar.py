@@ -8,10 +8,11 @@ from datetime import datetime
 class ContasPagar():
     def __init__(self):
         pass
-    
+
     def insert_update(self, id, desc, data_pag, data_ven,valor, valor_pago, obs, o):
         conexao = bd.Conexao()
         conn = conexao.conexao()
+        self.new_id = 0
         if (conn == None):
             return False
         try:
@@ -26,9 +27,13 @@ class ContasPagar():
             data_pag = datetime.strptime(data_pag, "%d/%m/%Y").strftime("%Y-%m-%d")
             data_ven = datetime.strptime(data_ven, "%d/%m/%Y").strftime("%Y-%m-%d")
             
+            
             if (id == ""):
-                cursor.execute("INSERT INTO contas_pagar(descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes, id_organizacao) " +
-                               "VALUES ('" + str(desc) + "','" + data_pag + "','" + data_ven + "'," + valor + "," + valor_pago + ",'" + obs + "'," + str(org['id']) + ")")
+                cursor.execute("select nextval('contas_pagar_id_seq')")
+                self.new_id = cursor.fetchone()[0]
+                cursor.execute("INSERT INTO contas_pagar(id, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes, id_organizacao) " +
+                               "VALUES (" + str(self.new_id) + ",'" + str(desc) + "','" + data_pag + "','" + data_ven + "'," + valor + "," + valor_pago + ",'" + obs + "'," + str(org['id']) + ")")
+
             else:
                 if len(self.buscar(int(id))) == 0:
                     messagebox.showinfo("Atenção", f"O ID {id} não está presente na tabela")
@@ -88,7 +93,7 @@ class ContasPagar():
                                     to_char(data_vencimento, 'DD/MM/YYYY') as data_vencimento,
                                     valor,
                                     valor_pago
-                                FROM contas_pagar order by id""")
+                                FROM contas_pagar""")
             
             resultado = conexao.tupla_ou_lista(cursor,tupla)
             conn.close()

@@ -11,6 +11,7 @@ class ContasReceber():
     def insert_update(self, id, desc, data, valor, obs, o):
         conexao = bd.Conexao()
         conn = conexao.conexao()
+        self.new_id = 0
         if (conn == None):
             return False
         try:
@@ -25,8 +26,10 @@ class ContasReceber():
             data = datetime.strptime(data, "%d/%m/%Y").strftime("%Y-%m-%d")
             
             if (id == ""):
-                cursor.execute("INSERT INTO contas_receber(descricao, data_recebimento,  valor, observacoes,id_organizacao) " +
-                            "VALUES ('" + str(desc) + "','" + data + "'," + valor + ",'" + obs + "'," + str(org['id']) + ")")
+                cursor.execute("select nextval('contas_receber_id_seq')")
+                self.new_id = cursor.fetchone()[0]                
+                cursor.execute("INSERT INTO contas_receber(id, descricao, data_recebimento,  valor, observacoes,id_organizacao) " +
+                            "VALUES (" + str(self.new_id) + ",'" + str(desc) + "','" + data + "'," + valor + ",'" + obs + "'," + str(org['id']) + ")")
                 
             else:
                 if len(self.buscar(int(id))) == 0:
@@ -79,9 +82,9 @@ class ContasReceber():
             cursor = conn.cursor()
             cursor.execute(f"""SELECT ID, 
                                       descricao, 
-                                      to_char(data_recebimento, 'DD/MM/YYYY') as data, 
-                                      to_char(valor, 'R$999,999,999.99')
-                                      FROM contas_receber""")
+                                      to_char(data_recebimento, 'DD/MM/YYYY') as data_recebimento, 
+                                      valor
+                                      FROM contas_receber order by id""")
             
             resultado = conexao.tupla_ou_lista(cursor,tupla)
             conn.close()

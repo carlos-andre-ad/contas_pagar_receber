@@ -22,8 +22,24 @@ pip install python-dotenv
 python app.py
 ```
 ### Telas do Sistema
+#### Login
 - Uma tela de login será apresentada solicitando o seu email e senha, caso seja a primeira execução do sistema entre com um email e senha qualquer
 - Se as configurações com o banco de dados estiverem corretas o sistema vai gerar automaticamente todas as tabelas necessárias
 - Em seguida uma conta de acesso será criada com o email e senha informados anteriormente, liberando o acesso ao sistema.
-  
-![Tela de Login](screenshot/login.png)
+
+![Login](screenshot/login.png)
+
+#### Cadastrar Contas à Pagar
+- Tela de lançamentos das contas à pagar, as contas são cadastradas por organização
+- ![Contas à Pagar](screenshot/contas_pagar.png)
+
+#### Cadastrar Contas à Receber
+- Tela de lançamentos das contas à receber, as contas são cadastradas por organização
+- ![Contas à Receber](screenshot/contas_receber.png)
+
+#### Cadastrar de Organizações
+- Tela de cadastro das organizações de controle financeiro
+- ![Contas à Pagar](screenshot/organizacao.png)
+
+[![Vídeo de Demonstração](screenshot/video.png)](https://youtu.be/YP4GqdUU0Q8)
+

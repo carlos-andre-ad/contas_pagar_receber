@@ -10,6 +10,7 @@ class Organizacao():
     def insert_update(self, id, nome):
         conexao = bd.Conexao()
         conn = conexao.conexao()
+        self.new_id = 0
         if (conn == None):
             return False
         try:
@@ -20,8 +21,11 @@ class Organizacao():
                 org = p.buscar_nome(nome, True)
                 if (org != None):
                     messagebox.showinfo("Atenção", f"A organização {nome} já está cadastrada")
-                    return False                  
-                cursor.execute("INSERT INTO pessoa(nome) " + "VALUES ('" + str(nome) +  "')")
+                    return False         
+                
+                cursor.execute("select nextval('pessoa_id_seq')")
+                self.new_id = cursor.fetchone()[0]                         
+                cursor.execute("INSERT INTO pessoa(id, nome) " + "VALUES ('" + str(self.new_id) + "','" + str(nome) +  "')")
                 
             else:
                 org = self.buscar(int(id))
@@ -61,7 +65,7 @@ class Organizacao():
         conn = conexao.conexao()
         if (conn != None):
             cursor = conn.cursor()
-            cursor.execute(f"""SELECT id, nome, id_organizacao,tipo_fornecedor, tipo_prestador,tipo_cliente, tipo_instit_financ FROM pessoa""")
+            cursor.execute(f"""SELECT id, nome, id_organizacao,tipo_fornecedor, tipo_prestador,tipo_cliente, tipo_instit_financ FROM pessoa order by id""")
             
             resultado = conexao.tupla_ou_lista(cursor,tupla)
             conn.close()

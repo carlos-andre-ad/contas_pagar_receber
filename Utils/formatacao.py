@@ -1,6 +1,5 @@
 
 import tkinter as tk
-import locale
 import re
 class Util():
     def __init__(self):
@@ -44,9 +43,19 @@ class Util():
         return None  
     
     def formatar_valor_real(self, valor):
-        #locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-        #valor_formatado = locale.currency(valor, grouping=True, symbol="R$")
-        return valor
+        
+        valor_formatado = "{:.2f}".format(valor)
+        partes = valor_formatado.split(".")
+        parte_inteira = partes[0]
+        parte_decimal = partes[1]
+
+        parte_inteira = parte_inteira[::-1]
+        parte_inteira = ".".join(parte_inteira[i:i+3] for i in range(0, len(parte_inteira), 3))
+        parte_inteira = parte_inteira[::-1]
+
+        valor_formatado = "R$ {},{}".format(parte_inteira, parte_decimal)
+            
+        return valor_formatado
     
     def extrair_numeros(self, texto):
         numeros = re.findall(r'\d+', texto)
