@@ -1,7 +1,7 @@
 
 ## Documentações
 ### [Requisitos do Sistema](./Docs/Requisitos.pdf)
-### [Casos de Uso](./Docs/uso.png)
+### [Caso de Uso](./Docs/uso.png)
 ## Instalação
 Requer python 3.11
 ### Bibliotecas
