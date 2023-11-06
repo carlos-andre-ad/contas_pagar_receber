@@ -5,16 +5,20 @@
 ## Instalação
 Requer python 3.11
 ### Bibliotecas
-Bibliotecas necessárias para executar o sistema
 
 ```sh
 pip install customtkinter
-pip install tkinter
 pip install CTkToolTip
 pip install Pillow
 pip install psycopg2
 pip install python-dotenv
 ```
+Caso execute o sistema em um ambiente vitual, instale também:
+```sh
+pip install packaging
+```
+
+
 ### Configurações
 - No arquivo .env altere os parâmetros de banco de dados
 
