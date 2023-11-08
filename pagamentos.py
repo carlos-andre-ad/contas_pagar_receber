@@ -1,7 +1,7 @@
 import customtkinter as ct
 import tkinter as tk
-from DB.entidades import contas_pagar as cp
-from DB.entidades import pessoa
+from infra.entidade import contas_pagar as cp
+from infra.entidade import pessoa
 from Utils import formatacao
 from Utils import paginacao as page
 from tkinter import ttk
@@ -9,8 +9,8 @@ from tkinter import messagebox
 from CTkToolTip import *
 from dotenv import load_dotenv
 import os
-
-
+from infra.repository.despesas_repository import DespesasRepository
+from infra.repository.organizacoes_repository import OrganizacoesRepository
 
 
 class Pagamentos():
@@ -22,15 +22,15 @@ class Pagamentos():
         
     def pagar(self,frame_pagamento):
         
-        self.contasPagar = cp.ContasPagar()
-        self.format = formatacao.Util()        
+        self.repo_despesas = DespesasRepository()
+        self.lista_contas_pagar = self.repo_despesas.listar(True)
+        self.format = formatacao.Util()    
         
         self.nome_coluna_ordenar = "descricao" #ordenação default
         self.colunas_data   = ["data_pagamento", "data_vencimento"] # Nome das colunas do tipo data
         self.colunas_numericas = ["id", "valor", "valor_pago"] # nome das colunas do tipo numérico
         self.colunas_tree_view  = ["id", "descricao", "data_pagamento", "data_vencimento","valor","valor_pago"] # colunas do tree view
         self.ordenacao_colunas = {"id": "crescente", "descricao": "crescente", "data_pagamento": "crescente", "data_vencimento": "crescente", "valor": "crescente", "valor_pago": "crescente"}        
-        
         
         self.tree_view_pagamento = ttk.Treeview(frame_pagamento)      
         style = ttk.Style()
@@ -52,8 +52,6 @@ class Pagamentos():
         self.tree_view_pagamento.bind("<Button-1>", lambda event: self.on_item_double_click_bind(event)) 
         self.tree_view_pagamento.bind("<KeyPress>", lambda event: self.on_item_double_click_bind(event)) 
         self.tree_view_pagamento.tag_configure('orow', background='#EEEEEE')        
-        
-        self.lista_contas_pagar = self.contasPagar.listar(True)
         
         self.idx_coluna_id = 0
         self.tree_view_pagamento_id_selecionado = 0
@@ -107,10 +105,10 @@ class Pagamentos():
         self.ctk_entry_var_valor_pago_total = tk.StringVar()   
         self.ctk_entry_var_filtro = tk.StringVar()       
                 
-        p = pessoa.Pessoa()
-        self.organizacoes = p.listar(True)
+        self.repo_org = OrganizacoesRepository()
+        organizacoes = self.repo_org.listar(True)
         
-        self.frame_pagamento_combobox_organizacoes = ct.CTkComboBox(frame_pagamento, values=[item['nome'] for item in self.organizacoes], width=905,
+        self.frame_pagamento_combobox_organizacoes = ct.CTkComboBox(frame_pagamento, values=[item['nome'] for item in organizacoes], width=905,
                                                                         command=self.selecionar_organizacao, variable=self.ctk_combobox_var_organizacao)
         self.frame_pagamento_combobox_organizacoes.grid(row=1, column=1, padx=10, pady=5, sticky="w") 
         self.frame_pagamento_combobox_organizacoes.tabindex = 1
@@ -232,9 +230,9 @@ class Pagamentos():
         resposta = messagebox.askyesno("Confirmação", f"Deseja excluir a despesa {desc}?")
         if (resposta):      
             id = str(self.ctk_entry_var_id.get())
-            if (self.contasPagar.delete(id)):
+            if (self.repo_despesas.delete(id)):
                 self.acao = 4
-                self.lista_contas_pagar = self.contasPagar.listar(True)                   
+                self.lista_contas_pagar = self.repo_despesas.listar(True)                   
                 self.update_tree_view()         
             
     def salvar(self):
@@ -275,12 +273,12 @@ class Pagamentos():
             self.frame_pagamento_entry_valor_pago.focus()
             return False
         
-        sucesso = self.contasPagar.insert_update(id, desc, data_pag, data_venc,valor, valor_pago, obs, org)
+        sucesso = self.repo_despesas.insert_update(id, desc, data_pag, data_venc,valor, valor_pago, obs, org)
         if (sucesso):  
             resposta = messagebox.askyesno("Confirmação", f"Confirma {' inclusão' if not id else 'alteração'} dessa despesa?")
             if resposta:    
-                new_id =  self.contasPagar.new_id
-                self.lista_contas_pagar = self.contasPagar.listar(True)
+                new_id =  self.repo_despesas.new_id
+                self.lista_contas_pagar = self.repo_despesas.listar(True)
                 if id == "":
                     messagebox.showinfo("Sucesso", f"Despesa inserida com sucesso")
                     self.ctk_entry_var_filtro.set("")
@@ -366,7 +364,7 @@ class Pagamentos():
             values = self.tree_view_pagamento.item(item, 'values')
             self.tree_view_pagamento_id_selecionado = values[0]
             self.paginacao.tree_view_id_selecionado = self.tree_view_pagamento_id_selecionado
-            res = self.contasPagar.buscar(self.tree_view_pagamento_id_selecionado, True)
+            res = self.repo_despesas.buscar(self.tree_view_pagamento_id_selecionado, True)
             if res != None:
                 self.ctk_combobox_var_organizacao.set(res['organizacao'])
                 self.ctk_entry_var_id.set(res['id'])

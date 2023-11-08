@@ -1,6 +1,5 @@
 import customtkinter as ct
 import tkinter as tk
-from DB.entidades import organizacao as org
 from Utils import formatacao
 from Utils import paginacao as page
 from tkinter import ttk
@@ -8,6 +7,7 @@ from tkinter import messagebox
 from CTkToolTip import *
 from dotenv import load_dotenv
 import os
+from infra.repository.organizacoes_repository import OrganizacoesRepository
 
 class Organizacao():
     def __init__(self):
@@ -18,9 +18,10 @@ class Organizacao():
         
     def organizacao(self,frame_organizacao):
         
-        self.org = org.Organizacao()
-        self.format = formatacao.Util()        
-        
+        self.repo_org = OrganizacoesRepository()
+        self.lista_organizacoes = self.repo_org.listar(True)
+        self.format = formatacao.Util()   
+    
         self.nome_coluna_ordenar = "nome" #ordenação default
         self.colunas_data   = [] # Nome das colunas do tipo data
         self.colunas_numericas = ["id"] # nome das colunas do tipo numérico
@@ -40,8 +41,6 @@ class Organizacao():
         self.tree_view_organizacao.bind("<KeyPress>", lambda event: self.on_item_double_click_bind(event)) 
         self.tree_view_organizacao.tag_configure('orow', background='#EEEEEE')             
         
-        self.lista_organizacoes = self.org.listar(True)
-        
         self.idx_coluna_id = 0
         self.tree_view_organizacao_id_selecionado = 0
         self.paginacao = page.PaginatedTreeView(self.tamanho_pagina, 
@@ -60,7 +59,7 @@ class Organizacao():
         
         self.label = ct.CTkLabel(frame_organizacao, text="Organizações", font=ct.CTkFont(size=25, weight="bold"))
         self.label.grid(row=0, column=1, padx=20, pady=10)        
-                   
+
         self.frame_organizacao_label_nome = ct.CTkLabel(frame_organizacao, text="Nome:", compound="left", font=ct.CTkFont(size=12, weight="bold"))
         self.frame_organizacao_label_nome.grid(row=2, column=0, padx=10, pady=5, sticky="w")             
                 
@@ -68,7 +67,7 @@ class Organizacao():
         self.ctk_entry_var_nome = tk.StringVar()
         self.ctk_entry_var_id = tk.StringVar()
         self.ctk_entry_var_filtro = tk.StringVar()       
-                       
+
         self.frame_organizacao_entry_nome = ct.CTkEntry(frame_organizacao, textvariable=self.ctk_entry_var_nome, height=30, width=905)
         self.frame_organizacao_entry_nome.grid(row=2, column=1, padx=10, pady=5, sticky="w") 
         self.frame_organizacao_entry_nome.tabindex = 1
@@ -145,9 +144,9 @@ class Organizacao():
         resposta = messagebox.askyesno("Confirmação", f"Deseja excluir a organização {desc}?")
         if (resposta):      
             id = str(self.ctk_entry_var_id.get())
-            if (self.org.delete(id)):
+            if (self.repo_org.delete(id)):
                 self.acao = 4
-                self.lista_organizacoes = self.org.listar(True)                   
+                self.lista_organizacoes = self.repo_org.listar(True)                   
                 self.update_tree_view()         
             
     def salvar(self):
@@ -159,12 +158,11 @@ class Organizacao():
             self.frame_organizacao_entry_nome.focus()
             return False
         
-        sucesso = self.org.insert_update(id, desc)
+        sucesso, new_id = self.repo_org.insert_update(id, desc)
         if (sucesso):  
             resposta = messagebox.askyesno("Confirmação", f"Confirma {' inclusão' if not id else 'alteração'} dessa organização?")
             if resposta:    
-                new_id =  self.org.new_id
-                self.lista_organizacoes = self.org.listar(True)
+                self.lista_organizacoes = self.repo_org.listar(True)
                 if id == "":
                     messagebox.showinfo("Sucesso", f"Organização inserida com sucesso")
                     self.ctk_entry_var_filtro.set("")
@@ -237,7 +235,7 @@ class Organizacao():
             values = self.tree_view_organizacao.item(item, 'values')
             self.tree_view_organizacao_id_selecionado = values[0]
             self.paginacao.tree_view_id_selecionado = self.tree_view_organizacao_id_selecionado
-            res = self.org.buscar(self.tree_view_organizacao_id_selecionado, True)
+            res = self.repo_org.buscar(self.tree_view_organizacao_id_selecionado, True)
             if res != None:
                 self.ctk_entry_var_id.set(res['id'])
                 self.ctk_entry_var_nome.set(res['nome'])

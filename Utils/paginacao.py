@@ -131,7 +131,7 @@ class PaginatedTreeView():
             next_button = tk.DISABLED
             last_button = tk.DISABLED
             prev_button = tk.NORMAL
-            first_button = tk.NORMAL
+            first_button = tk.NORMAL          
         
         return next_button, prev_button , first_button, last_button
    

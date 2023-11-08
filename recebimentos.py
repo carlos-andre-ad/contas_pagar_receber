@@ -1,7 +1,7 @@
 import customtkinter as ct
 import tkinter as tk
-from DB.entidades import contas_receber as cr
-from DB.entidades import pessoa
+from infra.entidade import contas_receber as cr
+from infra.entidade import pessoa
 from Utils import formatacao
 from Utils import paginacao as page
 from tkinter import ttk
@@ -9,6 +9,9 @@ from tkinter import messagebox
 from CTkToolTip import *
 from dotenv import load_dotenv
 import os
+from infra.repository.receitas_repository import ReceitasRepository
+from infra.repository.organizacoes_repository import OrganizacoesRepository
+
 
 class Recebimentos():
     def __init__(self):
@@ -19,7 +22,8 @@ class Recebimentos():
         
     def receber(self,frame_recebimento):
         
-        self.contasReceber = cr.ContasReceber()
+        self.repo_receitas = ReceitasRepository()
+        self.lista_contas_receber = self.repo_receitas.listar(True)
         self.format = formatacao.Util()        
         
         self.nome_coluna_ordenar = "descricao" #ordenação default
@@ -44,8 +48,6 @@ class Recebimentos():
         self.tree_view_recebimento.bind("<Button-1>", lambda event: self.on_item_double_click_bind(event)) 
         self.tree_view_recebimento.bind("<KeyPress>", lambda event: self.on_item_double_click_bind(event)) 
         self.tree_view_recebimento.tag_configure('orow', background='#EEEEEE')             
-        
-        self.lista_contas_receber = self.contasReceber.listar(True)
         
         self.idx_coluna_id = 0
         self.tree_view_recebimento_id_selecionado = 0
@@ -90,10 +92,10 @@ class Recebimentos():
         self.ctk_entry_var_valor_total = tk.StringVar()
         self.ctk_entry_var_filtro = tk.StringVar()       
                 
-        p = pessoa.Pessoa()
-        self.organizacoes = p.listar(True)
+        self.repo_org = OrganizacoesRepository()
+        organizacoes = self.repo_org.listar(True)
         
-        self.frame_recebimento_combobox_organizacoes = ct.CTkComboBox(frame_recebimento, values=[item['nome'] for item in self.organizacoes], width=905,
+        self.frame_recebimento_combobox_organizacoes = ct.CTkComboBox(frame_recebimento, values=[item['nome'] for item in organizacoes], width=905,
                                                                         command=self.selecionar_organizacao, variable=self.ctk_combobox_var_organizacao)
         self.frame_recebimento_combobox_organizacoes.grid(row=1, column=1, padx=10, pady=5, sticky="w") 
         self.frame_recebimento_combobox_organizacoes.tabindex = 1
@@ -199,9 +201,9 @@ class Recebimentos():
         resposta = messagebox.askyesno("Confirmação", f"Deseja excluir a receita {desc}?")
         if (resposta):      
             id = str(self.ctk_entry_var_id.get())
-            if (self.contasReceber.delete(id)):
+            if (self.repo_receitas.delete(id)):
                 self.acao = 4
-                self.lista_contas_receber = self.contasReceber.listar(True)                   
+                self.lista_contas_receber = self.repo_receitas.listar(True)                   
                 self.update_tree_view()         
             
     def salvar(self):
@@ -231,12 +233,12 @@ class Recebimentos():
             self.frame_recebimento_entry_valor.focus()
             return False
         
-        sucesso = self.contasReceber.insert_update(id, desc, data_recb, valor, obs, org)
+        sucesso = self.repo_receitas.insert_update(id, desc, data_recb, valor, obs, org)
         if (sucesso):  
             resposta = messagebox.askyesno("Confirmação", f"Confirma {' inclusão' if not id else 'alteração'} dessa receita?")
             if resposta:    
-                new_id =  self.contasReceber.new_id
-                self.lista_contas_receber = self.contasReceber.listar(True)
+                new_id =  self.repo_receitas.new_id
+                self.lista_contas_receber = self.repo_receitas.listar(True)
                 if id == "":
                     messagebox.showinfo("Sucesso", f"Receita inserida com sucesso")
                     self.ctk_entry_var_filtro.set("")
@@ -315,7 +317,7 @@ class Recebimentos():
             values = self.tree_view_recebimento.item(item, 'values')
             self.tree_view_recebimento_id_selecionado = values[0]
             self.paginacao.tree_view_id_selecionado = self.tree_view_recebimento_id_selecionado
-            res = self.contasReceber.buscar(self.tree_view_recebimento_id_selecionado, True)
+            res = self.repo_receitas.buscar(self.tree_view_recebimento_id_selecionado, True)
             if res != None:
                 self.ctk_combobox_var_organizacao.set(res['organizacao'])
                 self.ctk_entry_var_id.set(res['id'])

@@ -1,5 +1,5 @@
 
-import DB.conn as bd
+import infra.conn as bd
 from tkinter import messagebox
 
 class Pessoa():

@@ -4,8 +4,8 @@ import os
 import pagamentos as PAG
 import recebimentos as REC
 import organizacao as ORG
-from DB import conn as bd
-from DB.entidades import login as login
+from infra import conn as bd
+from infra.entidade import login as login
 from Utils import formatacao
 from tkinter import messagebox
 from PIL import Image
@@ -48,8 +48,8 @@ class App(ct.CTk):
         
         self.ctk_entry_var_email = tk.StringVar()
         self.ctk_entry_var_senha = tk.StringVar()
-        #self.ctk_entry_var_senha.set('123456')
-        #self.ctk_entry_var_email.set('admin@admin.com')
+        self.ctk_entry_var_senha.set('123456')
+        self.ctk_entry_var_email.set('admin@admin.com')
         # frame login
         frame_login = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
         frame_login.grid_columnconfigure(1, weight=1)

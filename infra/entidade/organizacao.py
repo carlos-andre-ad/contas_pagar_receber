@@ -1,6 +1,6 @@
 
-import DB.conn as bd
-import DB.entidades.pessoa as pessoa
+import infra.conn as bd
+import infra.entidade.pessoa as pessoa
 from tkinter import messagebox
 
 class Organizacao():

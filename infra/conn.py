@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 class Conexao():
     def __init__(self):
         pass
+    
+    
      
     def criar_tabelas(self):
         try:

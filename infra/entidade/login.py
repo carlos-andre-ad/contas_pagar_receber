@@ -1,5 +1,5 @@
 
-import DB.conn as bd
+import infra.conn as bd
 
 class Login():
     def __init__(self):

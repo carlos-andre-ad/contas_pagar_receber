@@ -1,14 +1,15 @@
 
-import DB.conn as bd
-import DB.entidades.pessoa as pessoa
+import infra.conn as bd
+import infra.entidade.pessoa as pessoa
 from tkinter import messagebox
 from datetime import datetime
 
-class ContasReceber():
+
+class ContasPagar():
     def __init__(self):
         pass
-    
-    def insert_update(self, id, desc, data, valor, obs, o):
+
+    def insert_update(self, id, desc, data_pag, data_ven,valor, valor_pago, obs, o):
         conexao = bd.Conexao()
         conn = conexao.conexao()
         self.new_id = 0
@@ -21,25 +22,29 @@ class ContasReceber():
             org = p.buscar_nome(o, True)
             if (org == None):
                 messagebox.showinfo("Atenção", f"Não foi possivel encontrar a organização {o} ")
-                return False          
+                return False
             
-            data = datetime.strptime(data, "%d/%m/%Y").strftime("%Y-%m-%d")
+            data_pag = datetime.strptime(data_pag, "%d/%m/%Y").strftime("%Y-%m-%d")
+            data_ven = datetime.strptime(data_ven, "%d/%m/%Y").strftime("%Y-%m-%d")
+            
             
             if (id == ""):
-                cursor.execute("select nextval('contas_receber_id_seq')")
-                self.new_id = cursor.fetchone()[0]                
-                cursor.execute("INSERT INTO contas_receber(id, descricao, data_recebimento,  valor, observacoes,id_organizacao) " +
-                            "VALUES (" + str(self.new_id) + ",'" + str(desc) + "','" + data + "'," + valor + ",'" + obs + "'," + str(org['id']) + ")")
-                
+                cursor.execute("select nextval('contas_pagar_id_seq')")
+                self.new_id = cursor.fetchone()[0]
+                cursor.execute("INSERT INTO contas_pagar(id, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes, id_organizacao) " +
+                               "VALUES (" + str(self.new_id) + ",'" + str(desc) + "','" + data_pag + "','" + data_ven + "'," + valor + "," + valor_pago + ",'" + obs + "'," + str(org['id']) + ")")
+
             else:
                 if len(self.buscar(int(id))) == 0:
                     messagebox.showinfo("Atenção", f"O ID {id} não está presente na tabela")
                     return False
                 else:
-                    cursor.execute("UPDATE contas_receber set descricao = '" + str(desc) + "'," +
-                                "data_recebimento = '" + data  + "'," +
+                    cursor.execute("UPDATE contas_pagar set descricao = '" + str(desc) + "'," +
+                                "data_pagamento = '" + data_pag  + "'," +
+                                "data_vencimento = '" + data_ven  + "'," +
                                 "valor = " + valor  + "," +
                                 "id_organizacao = " + str(org['id'])  + "," +
+                                "valor_pago = " + valor_pago  + "," +
                                 "observacoes = '" + str(obs)  + "' WHERE id = " + id 
                                 ) 
             conn.commit() 
@@ -47,7 +52,7 @@ class ContasReceber():
         except Exception as e:
             conn.rollback()
             conn.close()
-            messagebox.showerror("Erro", f"Não foi possível salvar essa receita: {str(e)}")
+            messagebox.showerror("Erro", f"Não foi possível salvar essa despesa: {str(e)}")
             return False
         
         return True
@@ -60,11 +65,13 @@ class ContasReceber():
             cursor = conn.cursor()
             cursor.execute(f"""SELECT c.ID, 
                                     c.descricao, 
-                                    to_char(c.data_recebimento, 'DD/MM/YYYY') as data_recebimento,
+                                    to_char(c.data_pagamento, 'DD/MM/YYYY') as data_pagamento, 
+                                    to_char(c.data_vencimento, 'DD/MM/YYYY') as data_vencimento,
                                     c.valor,
+                                    c.valor_pago, 
                                     c.observacoes,
                                     p.nome as organizacao
-                                    FROM contas_receber c
+                                    FROM contas_pagar c
                                     INNER JOIN pessoa p on p.id = c.id_organizacao
                                     WHERE c.id = {id}""")
             resultado = conexao.tupla_ou_lista(cursor,tupla)
@@ -75,16 +82,18 @@ class ContasReceber():
                 return resultado[0]
         
         
-    def listar(self, tupla = False):
+    def listar(self, tupla=False):
         conexao = bd.Conexao()
         conn = conexao.conexao()
-        if (conn != None):
+        if conn is not None:
             cursor = conn.cursor()
             cursor.execute(f"""SELECT ID, 
-                                      descricao, 
-                                      to_char(data_recebimento, 'DD/MM/YYYY') as data_recebimento, 
-                                      valor
-                                      FROM contas_receber order by id""")
+                                    descricao, 
+                                    to_char(data_pagamento, 'DD/MM/YYYY') as data_pagamento, 
+                                    to_char(data_vencimento, 'DD/MM/YYYY') as data_vencimento,
+                                    valor,
+                                    valor_pago
+                                FROM contas_pagar""")
             
             resultado = conexao.tupla_ou_lista(cursor,tupla)
             conn.close()
@@ -98,13 +107,13 @@ class ContasReceber():
             if (conn != None):
                 try:
                     cursor = conn.cursor()
-                    cursor.execute("DELETE FROM contas_receber WHERE id = '" + str(id) + "'")
-                    conn.commit()
+                    cursor.execute("DELETE FROM contas_pagar WHERE id = '" + str(id) + "'")
+                    conn.commit() 
                     conn.close()
                 except Exception as e:
                     conn.rollback()
                     conn.close()
-                    messagebox.showerror("Erro", f"Não foi possível excluir essa receita: {str(e)}")
+                    messagebox.showerror("Erro", f"Não foi possível excluir essa despesa: {str(e)}")
                     return False
                 
             return True            
