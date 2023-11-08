@@ -1,7 +1,6 @@
 from infra.configs.connection import DBConnectionHandler
 from infra.entities.organizacoes import Organizacoes
 from sqlalchemy.orm.exc import NoResultFound
-from tkinter import messagebox
 from sqlalchemy import text
 
 class OrganizacoesRepository:
@@ -11,31 +10,27 @@ class OrganizacoesRepository:
             try:
                 data = db.session.query(Organizacoes).all()
                 if data == None:
-                    return []
+                    return True, []
                 if (resposta == None):
-                    return data
+                    return True, data
                 else:
-                    return [ self.monta_dados(item,resposta) for item in data]
-            except Exception as e:
+                    return True, [ self.monta_dados(item,resposta) for item in data]
+            except Exception as exception:
                 db.session.rollback()
-                messagebox.showerror("Erro", f"{str(e)}")
-                return False 
+                return False, exception
+            
 
     def insert_update(self, id, nome):
         org = self.buscar_nome(nome, True)
         if (id == ""):
             if (org != None):
-                messagebox.showinfo("Atenção", f"A organização {nome} já está cadastrada")
-                return False
-            
+                return False, "Já existe uma organização com esse nome"
             return self.insert(nome)
         else:
-            
             if org != None and id != org['id']:
-                messagebox.showinfo("Atenção", f"A organização {nome} já está cadastrada")
-                return False
-            
+                return False, "Já existe uma organização com esse nome"
             return self.update(id, nome)
+        
   
     def update(self, id, nome):
       with DBConnectionHandler() as db:
@@ -43,9 +38,8 @@ class OrganizacoesRepository:
               db.session.query(Organizacoes).filter(Organizacoes.id == id).update({ "nome": nome })
               db.session.commit()
               return True, None
-          except Exception as e:
-                messagebox.showerror("Erro", f"Não foi possível alterar a organização: {str(e)}")
-                return False, None
+          except Exception as exception:
+                return False, exception
           
             
     def insert(self, nome):
@@ -59,10 +53,9 @@ class OrganizacoesRepository:
                 db.session.add(data_isert)
                 db.session.commit()
                 return True, id_seq
-            except Exception as e:
+            except Exception as exception:
                 db.session.rollback()
-                messagebox.showerror("Erro", f"Não foi possível salvar a organização: {str(e)}")
-                return False, None
+                return False, exception
             
             
     def buscar(self, id, resposta=None):
@@ -70,18 +63,18 @@ class OrganizacoesRepository:
             try:
                 data = db.session.query(Organizacoes).filter(Organizacoes.id==id).one()
                 if data == None:
-                    return None
+                    return False, "Organização não encontrada"
                 
                 if (resposta == None):
-                    return data
+                    return True, data
                 else:
-                    return self.monta_dados(data,resposta)
+                    return True, self.monta_dados(data,resposta)
                                         
             except NoResultFound:
-                return None
+                return False, "Organização não encontrada"
             except Exception as exception:
                 db.session.rollback()
-                raise exception
+                return False, exception
 
   
     def buscar_nome(self, nome, resposta=None):
@@ -90,18 +83,18 @@ class OrganizacoesRepository:
                 data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome).one()
 
                 if data == None:
-                    return None
+                    return False, "Organização não encontrada"
 
                 if (resposta == None):
-                    return data
+                    return True, data
                 else:
-                    return self.monta_dados(data,resposta)
+                    return True, self.monta_dados(data,resposta)
 
             except NoResultFound:
-                return None
+                return False, "Organização não encontrada"
             except Exception as exception:
                 db.session.rollback()
-                raise exception
+                return False, exception
             
             
     def delete(self, id):
@@ -109,14 +102,14 @@ class OrganizacoesRepository:
             try:
                 db.session.query(Organizacoes).filter(Organizacoes.id == id).delete()
                 db.session.commit()
-                return True
-            except Exception as e:
+                return True,None
+            except Exception as exception:
                 db.session.rollback()
-                messagebox.showerror("Erro", f"Não foi possível excluir essa organização: {str(e)}")
-                return False
+                return False, exception
 
     def monta_dados(self,item, resposta):   
         if resposta == True:
-            return {'id': item.id,'nome': item.nome}
+            return {'id': item.id,'nome': item.nome} 
         else:
             return {item.id, item.nome}
+        

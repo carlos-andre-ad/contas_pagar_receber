@@ -1,7 +1,6 @@
 from infra.configs.connection import DBConnectionHandler
 from infra.entities.despesas import Despesas
 from sqlalchemy.orm.exc import NoResultFound
-from tkinter import messagebox
 from sqlalchemy import text
 
 class DespesasRepository:
@@ -10,16 +9,15 @@ class DespesasRepository:
             try:
                 data = db.session.query(Despesas).all()
                 if data == None:
-                    return []
+                    return True, []
                 if (resposta == None):
-                    return data
+                    return True, data
                 else:
-                   return [ self.monta_dados(item,resposta) for item in data]
+                   return True, [ self.monta_dados(item,resposta) for item in data]
 
-            except Exception as e:
+            except Exception as exception:
                 db.session.rollback()
-                messagebox.showerror("Erro", f"{str(e)}")
-                return False 
+                return False, exception
     
 
     def insert_update(self, id, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes):
@@ -40,9 +38,8 @@ class DespesasRepository:
                                                                             'observacoes': observacoes })
               db.session.commit()
               return True, None
-          except Exception as e:
-                messagebox.showerror("Erro", f"Não foi possível alterar essa despesa: {str(e)}")
-                return False, None
+          except Exception as exception:
+                return False, exception
           
             
     def insert(self, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes):
@@ -62,10 +59,9 @@ class DespesasRepository:
                 db.session.add(data_isert)
                 db.session.commit()
                 return True, id_seq
-            except Exception as e:
+            except Exception as exception:
                 db.session.rollback()
-                messagebox.showerror("Erro", f"Não foi possível salvar essa despesa: {str(e)}")
-                return False, None
+                return False, exception
             
             
     def buscar(self, id, resposta=None):
@@ -74,18 +70,18 @@ class DespesasRepository:
                 data = db.session.query(Despesas).filter(Despesas.id==id).one()
                 
                 if data == None:
-                    return None
+                    return False, None
                 
                 if (resposta == None):
-                    return data
+                    return True, data
                 else:
-                    return self.monta_dados(data,resposta)
+                    return True, self.monta_dados(data,resposta)
                                         
             except NoResultFound:
-                return None
+                return False, None
             except Exception as exception:
                 db.session.rollback()
-                raise exception
+                return False, exception
             
             
     def delete(self, id):
@@ -93,11 +89,10 @@ class DespesasRepository:
             try:
                 db.session.query(Despesas).filter(Despesas.id == id).delete()
                 db.session.commit()
-                return True
-            except Exception as e:
+                return True, None
+            except Exception as exception:
                 db.session.rollback()
-                messagebox.showerror("Erro", f"Não foi possível excluir essa despesa: {str(e)}")
-                return False
+                return False, exception
 
 
     def monta_dados(self,item, resposta):   

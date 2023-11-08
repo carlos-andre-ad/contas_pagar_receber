@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
@@ -15,6 +15,7 @@ class DBConnectionHandler:
 
     def __create_database_engine(self):
         engine = create_engine(self.__connection_string)
+        self.metadata = MetaData(bind=engine)
         return engine
 
     def get_engine(self):

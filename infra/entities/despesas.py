@@ -1,6 +1,6 @@
 
 from infra.configs.base import Base
-from sqlalchemy import Column, String, Integer, Double, DateTime,ForeignKey
+from sqlalchemy import Column, String, Integer, Double, DateTime,ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 class Despesas(Base):
@@ -12,7 +12,7 @@ class Despesas(Base):
     data_vencimento = Column(DateTime, nullable=False)
     valor = Column(Double, nullable=False)
     valor_pago = Column(Double, nullable=False)
-    observacoes = Column(String, nullable=True)
+    observacoes = Column(Text, nullable=True)
     id_organizacao = Column(String, ForeignKey("pessoa.id"))
     organizacao = relationship("Organizacoes")
     

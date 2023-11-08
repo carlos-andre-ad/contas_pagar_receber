@@ -1,7 +1,7 @@
 from infra.configs.connection import DBConnectionHandler
+from infra.configs.migrate import Migrate
 from infra.entities.usuarios import Usuarios
 from sqlalchemy.orm.exc import NoResultFound
-from tkinter import messagebox
 from sqlalchemy import text
 
 class UsuariosRepository:
@@ -9,11 +9,25 @@ class UsuariosRepository:
     def login(self, email,senha, resposta=None):
         with DBConnectionHandler() as db:
             try:
+                migrate = Migrate(db)
+                sucesso, exception = migrate.create_table()
                 
-                data = self.listar(resposta)
-                if len(data) == 0:
-                    self.insert( email, senha)
-                    
+                if (sucesso):
+                    data = self.listar(resposta)
+                    if len(data) == 0:
+                        sucesso, excp = self.insert( email, senha)
+                        if (sucesso):
+                            db.session.commit()
+                            return self.buscar_email(email)
+                        else:
+                            return False, excp
+                    else:
+                        return self.buscar_email_senha(email,senha)
+                else:
+                    return False, exception
+            except Exception as e:
+                db.session.rollback()
+                return False, e
 
 
     
@@ -22,29 +36,26 @@ class UsuariosRepository:
             try:
                 data = db.session.query(Usuarios).all()
                 if data == None:
-                    return []
+                    return True, []
                 if (resposta == None):
-                    return data
+                    return True, data
                 else:
                     return [ self.monta_dados(item,resposta) for item in data]
-            except Exception as e:
+            except Exception as exception:
                 db.session.rollback()
-                messagebox.showerror("Erro", f"{str(e)}")
-                return False 
+                return False, exception
 
     def insert_update(self, id, email, senha):
+        
         user = self.buscar_email(email, True)
         if (id == ""):
             if (user != None):
-                messagebox.showinfo("Atenção", f"O usuário {email} já está cadastrada")
-                return False
+                return False, f"O usuário {email} já está cadastrada"
             
             return self.insert(email, senha)
         else:
-            
             if user != None and id != user['id']:
-                messagebox.showinfo("Atenção", f"O usuário {email} já está cadastrada")
-                return False
+                return False, f"O usuário {email} já está cadastrada"
             
             return self.update(id, email)
   
@@ -55,8 +66,7 @@ class UsuariosRepository:
               db.session.commit()
               return True, None
           except Exception as e:
-                messagebox.showerror("Erro", f"Não foi possível alterar a organização: {str(e)}")
-                return False, None
+                return False, e
           
             
     def insert(self, email, senha):
@@ -66,14 +76,13 @@ class UsuariosRepository:
                 query = text("SELECT nextval('usuario_id_seq')")
                 result = db.session.execute(query)
                 id_seq = result.scalar()
-                data_isert = Usuarios(id=id_seq, email=email)
+                data_isert = Usuarios(id=id_seq, email=email, senha=senha)
                 db.session.add(data_isert)
                 db.session.commit()
                 return True, id_seq
             except Exception as e:
                 db.session.rollback()
-                messagebox.showerror("Erro", f"Não foi possível salvar a organização: {str(e)}")
-                return False, None
+                return False, e
             
             
     def buscar(self, id, resposta=None):
@@ -81,18 +90,18 @@ class UsuariosRepository:
             try:
                 data = db.session.query(Usuarios).filter(Usuarios.id==id).one()
                 if data == None:
-                    return None
+                    return False, None
                 
                 if (resposta == None):
-                    return data
+                    return True, data
                 else:
-                    return self.monta_dados(data,resposta)
+                    return True, self.monta_dados(data,resposta)
                                         
             except NoResultFound:
-                return None
+                return False, None
             except Exception as exception:
                 db.session.rollback()
-                raise exception
+                return False, exception
 
   
     def buscar_email(self, email, resposta=None):
@@ -101,18 +110,33 @@ class UsuariosRepository:
                 data = db.session.query(Usuarios).filter(Usuarios.email==email).one()
 
                 if data == None:
-                    return None
+                    return False, None
 
                 if (resposta == None):
-                    return data
+                    return True, data
                 else:
-                    return self.monta_dados(data,resposta)
+                    return True, self.monta_dados(data,resposta)
 
             except NoResultFound:
-                return None
+                return False, None
             except Exception as exception:
                 db.session.rollback()
-                raise exception
+                return False, exception
+            
+            
+    def buscar_email_senha(self, email,senha):
+        with DBConnectionHandler() as db:
+            try:
+                msg = "Email ou senha inválido"
+                data = db.session.query(Usuarios).filter(Usuarios.email==email, Usuarios.senha==senha).one()
+                if data == None:
+                    return False, msg
+                else:
+                    return True, None
+            except NoResultFound:
+                return False, msg
+            except Exception as exception:
+                return False, exception
             
             
     def delete(self, id):
@@ -123,8 +147,7 @@ class UsuariosRepository:
                 return True
             except Exception as e:
                 db.session.rollback()
-                messagebox.showerror("Erro", f"Não foi possível excluir essa organização: {str(e)}")
-                return False
+                return False, e
 
     def monta_dados(self,item, resposta):   
         if resposta == True:

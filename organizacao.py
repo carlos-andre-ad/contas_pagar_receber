@@ -19,7 +19,11 @@ class Organizacao():
     def organizacao(self,frame_organizacao):
         
         self.repo_org = OrganizacoesRepository()
-        self.lista_organizacoes = self.repo_org.listar(True)
+        sucesso, self.lista_organizacoes = self.repo_org.listar(True)
+        if sucesso == False:
+            messagebox.showerror("Erro", self.lista_organizacoes)
+            self.lista_organizacoes = []
+            
         self.format = formatacao.Util()   
     
         self.nome_coluna_ordenar = "nome" #ordenação default
@@ -146,7 +150,7 @@ class Organizacao():
             id = str(self.ctk_entry_var_id.get())
             if (self.repo_org.delete(id)):
                 self.acao = 4
-                self.lista_organizacoes = self.repo_org.listar(True)                   
+                self.lista_organizacoes = self.repo_org.listar(True)
                 self.update_tree_view()         
             
     def salvar(self):

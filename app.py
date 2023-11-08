@@ -4,9 +4,8 @@ import os
 import pagamentos as PAG
 import recebimentos as REC
 import organizacao as ORG
-from infra import conn as bd
-from infra.entidade import login as login
 from Utils import formatacao
+from infra.repository.usuarios_repository import UsuariosRepository
 from tkinter import messagebox
 from PIL import Image
 
@@ -91,16 +90,14 @@ class App(ct.CTk):
         if senha == "":
             messagebox.showwarning("Informação", "O campo Senha é de preenchimento obrigatório")
             return False
-                
-        conn = bd.Conexao()
-        if (conn.conexao() != None):
-            if conn.criar_tabelas() == True:
-                lg = login.Login()
-                logar = lg.logar(self.email, senha, True)
-                if logar != None:
-                    self.tela_principal()
-                else:
-                    messagebox.showwarning("LOGIN", "Email ou Senha inválido!")
+        
+        repo = UsuariosRepository()
+        
+        sucesso, exception = repo.login(self.email, senha, True)
+        if (sucesso):
+            self.tela_principal()
+        else:
+            messagebox.showwarning("LOGIN", exception)
     
     def tela_principal(self):
         
