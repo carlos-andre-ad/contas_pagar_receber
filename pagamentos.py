@@ -1,7 +1,5 @@
 import customtkinter as ct
 import tkinter as tk
-from infra.entidade import contas_pagar as cp
-from infra.entidade import pessoa
 from Utils import formatacao
 from Utils import paginacao as page
 from tkinter import ttk
@@ -11,20 +9,29 @@ from dotenv import load_dotenv
 import os
 from infra.repository.despesas_repository import DespesasRepository
 from infra.repository.organizacoes_repository import OrganizacoesRepository
-
+from datetime import datetime
 
 class Pagamentos():
     def __init__(self):
         load_dotenv()
         self.paginar_tree_view = int(os.getenv('PAGINACAO'))
         self.tamanho_pagina    = int(os.getenv('TAMANHO_PAGINA'))
+        self.listar(self)
         super().__init__()
+        
+    def listar(self, tupla):
+        self.repo_despesas = DespesasRepository()
+        sucesso, self.lista_contas_pagar = self.repo_despesas.listar(tupla)
+        if sucesso == False:
+            messagebox.showerror("Erro", self.lista_contas_pagar)
+            self.lista_contas_pagar = []
+        return sucesso
         
     def pagar(self,frame_pagamento):
         
-        self.repo_despesas = DespesasRepository()
-        self.lista_contas_pagar = self.repo_despesas.listar(True)
         self.format = formatacao.Util()    
+        
+        self.listar(True)
         
         self.nome_coluna_ordenar = "descricao" #ordenação default
         self.colunas_data   = ["data_pagamento", "data_vencimento"] # Nome das colunas do tipo data
@@ -106,7 +113,7 @@ class Pagamentos():
         self.ctk_entry_var_filtro = tk.StringVar()       
                 
         self.repo_org = OrganizacoesRepository()
-        organizacoes = self.repo_org.listar(True)
+        sucesso, organizacoes = self.repo_org.listar(True)
         
         self.frame_pagamento_combobox_organizacoes = ct.CTkComboBox(frame_pagamento, values=[item['nome'] for item in organizacoes], width=905,
                                                                         command=self.selecionar_organizacao, variable=self.ctk_combobox_var_organizacao)
@@ -232,7 +239,7 @@ class Pagamentos():
             id = str(self.ctk_entry_var_id.get())
             if (self.repo_despesas.delete(id)):
                 self.acao = 4
-                self.lista_contas_pagar = self.repo_despesas.listar(True)                   
+                self.listar(True)                 
                 self.update_tree_view()         
             
     def salvar(self):
@@ -273,17 +280,16 @@ class Pagamentos():
             self.frame_pagamento_entry_valor_pago.focus()
             return False
         
-        sucesso = self.repo_despesas.insert_update(id, desc, data_pag, data_venc,valor, valor_pago, obs, org)
+        sucesso, objects = self.repo_despesas.insert_update(id, desc, data_pag, data_venc,valor, valor_pago, obs, org)
         if (sucesso):  
             resposta = messagebox.askyesno("Confirmação", f"Confirma {' inclusão' if not id else 'alteração'} dessa despesa?")
             if resposta:    
-                new_id =  self.repo_despesas.new_id
-                self.lista_contas_pagar = self.repo_despesas.listar(True)
+                self.listar(True)
                 if id == "":
                     messagebox.showinfo("Sucesso", f"Despesa inserida com sucesso")
                     self.ctk_entry_var_filtro.set("")
-                    if (new_id != None):
-                        self.tree_view_pagamento_id_selecionado = new_id
+                    if (objects != None):
+                        self.tree_view_pagamento_id_selecionado = objects
                     else:
                         self.tree_view_pagamento_id_selecionado = self.lista_contas_pagar[len(self.lista_contas_pagar)-1]['id']
                 else:
@@ -293,7 +299,8 @@ class Pagamentos():
                 self.acao = 3
                 self.update_tree_view() 
                 self.paginacao.verificar_pagina_item = False
-                
+        else:
+            messagebox.showerror("Erro", objects)                
             
         
     def update_tree_view(self):
@@ -311,6 +318,14 @@ class Pagamentos():
             val = result['valor_pago']
             vlp_tot = vlp_tot + float(val)
             result['valor_pago'] = self.format.formatar_valor_real(float(val))
+            
+            data_pagamento = result['data_pagamento']
+            data_pagamento = data_pagamento.strftime("%d/%m/%Y")
+            result['data_pagamento'] = data_pagamento
+            
+            data_vencimento = result['data_vencimento']
+            data_vencimento = data_vencimento.strftime("%d/%m/%Y")
+            result['data_vencimento'] = data_vencimento            
                                 
             result = list(result.values())
             #Para auxiliar no buscar
@@ -364,13 +379,14 @@ class Pagamentos():
             values = self.tree_view_pagamento.item(item, 'values')
             self.tree_view_pagamento_id_selecionado = values[0]
             self.paginacao.tree_view_id_selecionado = self.tree_view_pagamento_id_selecionado
-            res = self.repo_despesas.buscar(self.tree_view_pagamento_id_selecionado, True)
-            if res != None:
+            sucesso, res = self.repo_despesas.buscar(self.tree_view_pagamento_id_selecionado, True)
+                        
+            if sucesso:
                 self.ctk_combobox_var_organizacao.set(res['organizacao'])
                 self.ctk_entry_var_id.set(res['id'])
                 self.ctk_entry_var_descricao.set(res['descricao'])
-                self.ctk_entry_var_data_venc.set(res['data_vencimento'])
-                self.ctk_entry_var_data_pag.set(res['data_pagamento'])
+                self.ctk_entry_var_data_venc.set(res['data_vencimento'].strftime("%d/%m/%Y"))
+                self.ctk_entry_var_data_pag.set(res['data_pagamento'].strftime("%d/%m/%Y"))
                 self.ctk_entry_var_valor.set(res['valor'])
                 self.ctk_entry_var_valor_pago.set(res['valor_pago'])
                 self.frame_pagamento_textbox_obs.configure(state=tk.NORMAL)
@@ -378,9 +394,8 @@ class Pagamentos():
                 if (res['observacoes'] != None and res['observacoes'] != ""):
                     self.frame_pagamento_textbox_obs.insert("1.0", res['observacoes'])
                 self.frame_pagamento_textbox_obs.configure(state=tk.DISABLED)
-                    
             else:
-                messagebox.showinfo("Atenção", f"O ID {id} não está presente na tabela")
+                messagebox.showinfo("Atenção", f"{res}. O ID {id} não está presente na tabela")
                         
     def filtrar_bind(self, event):
         self.filtrar()

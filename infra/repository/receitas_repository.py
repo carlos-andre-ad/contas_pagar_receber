@@ -1,7 +1,9 @@
 from infra.configs.connection import DBConnectionHandler
 from infra.entities.receitas import Receitas
+from infra.entities.organizacoes import Organizacoes
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import text
+from datetime import datetime
 
 class ReceitasRepository:
     def listar(self, resposta=None):
@@ -20,17 +22,26 @@ class ReceitasRepository:
                 return False, exception
     
 
-    def insert_update(self, id, descricao, data_recebimento, valor, observacoes):
-        if (id == ""):
-            return self.insert(descricao, data_recebimento, valor, observacoes)
-        else:
-            return self.update(id, descricao, data_recebimento, valor, observacoes)
+    def insert_update(self, id, descricao, data_recebimento, valor, observacoes, nome_org):
+        
+        data_recebimento = datetime.strptime(data_recebimento, "%d/%m/%Y").strftime("%Y-%m-%d")
+        
+        with DBConnectionHandler() as db:
+            data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome_org).one_or_none()   
+            if (data == None):
+                return False, f"Não foi possivel encontrar a organização {nome_org}"
+            else:   
+                id_org = data.id           
+                if (id == ""):
+                    return self.insert(db, descricao, data_recebimento, valor, observacoes, id_org)
+                else:
+                    return self.update(db, id, descricao, data_recebimento, valor, observacoes, id_org)
         
   
-    def update(self, id, descricao, data_recebimento, valor, observacoes):
-      with DBConnectionHandler() as db:
+    def update(self,db, id, descricao, data_recebimento, valor, observacoes, id_org):
           try:
               db.session.query(Receitas).filter(Receitas.id == id).update({ 'descricao': descricao,
+                                                                            'id_organizacao' : id_org,
                                                                             'data_recebimento': data_recebimento,
                                                                             'valor': valor,
                                                                             'observacoes': observacoes })
@@ -40,14 +51,13 @@ class ReceitasRepository:
                 return False, exception
           
             
-    def insert(self, descricao, data_recebimento, valor, observacoes):
-
-        with DBConnectionHandler() as db:
+    def insert(self, db, descricao, data_recebimento, valor, observacoes, id_org):
             try:
                 query = text("SELECT nextval('contas_receber_id_seq')")
                 result = db.session.execute(query)
                 id_seq = result.scalar()
                 data_isert = Receitas(id=id_seq, 
+                                      id_organizacao=id_org,
                                       descricao=descricao,
                                       data_recebimento=data_recebimento,
                                       valor=valor,
@@ -63,7 +73,7 @@ class ReceitasRepository:
     def buscar(self, id, resposta=None):
         with DBConnectionHandler() as db:
             try:
-                data = db.session.query(Receitas).filter(Receitas.id==id).one()
+                data = db.session.query(Receitas).filter(Receitas.id==id).one_or_none()
                 
                 if data == None:
                     return False, None

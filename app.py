@@ -78,7 +78,6 @@ class App(ct.CTk):
         btnLogar = ct.CTkButton(frame_login, text="Login", command=self.verificar_login, compound="right",  text_color=("gray10", "#DCE4EE"))
         btnLogar.grid(row=5, column=1, padx=5, pady=5, sticky="n")
         
-        
     def verificar_login(self):
         
         self.email    = str(self.ctk_entry_var_email.get())

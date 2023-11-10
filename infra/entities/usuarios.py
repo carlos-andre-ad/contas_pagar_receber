@@ -6,7 +6,7 @@ class Usuarios(Base):
     __tablename__ = "usuario"
 
     id = Column(Integer, primary_key=True)
-    nome = Column(String, nullable=False, unique=True)
+    email = Column(String, nullable=False, unique=True)
     senha = Column(String, nullable=False)
 
     # def __repr__(self):

@@ -16,14 +16,18 @@ class Organizacao():
         self.tamanho_pagina    = int(os.getenv('TAMANHO_PAGINA'))
         super().__init__()
         
-    def organizacao(self,frame_organizacao):
-        
+    def listar(self, tupla):
         self.repo_org = OrganizacoesRepository()
-        sucesso, self.lista_organizacoes = self.repo_org.listar(True)
+        sucesso, self.lista_organizacoes = self.repo_org.listar(tupla)
         if sucesso == False:
             messagebox.showerror("Erro", self.lista_organizacoes)
             self.lista_organizacoes = []
-            
+        return sucesso       
+     
+        
+    def organizacao(self,frame_organizacao):
+
+        self.listar(True)
         self.format = formatacao.Util()   
     
         self.nome_coluna_ordenar = "nome" #ordenação default
@@ -150,7 +154,7 @@ class Organizacao():
             id = str(self.ctk_entry_var_id.get())
             if (self.repo_org.delete(id)):
                 self.acao = 4
-                self.lista_organizacoes = self.repo_org.listar(True)
+                self.listar(True) 
                 self.update_tree_view()         
             
     def salvar(self):
@@ -162,16 +166,16 @@ class Organizacao():
             self.frame_organizacao_entry_nome.focus()
             return False
         
-        sucesso, new_id = self.repo_org.insert_update(id, desc)
+        sucesso, objects = self.repo_org.insert_update(id, desc)
         if (sucesso):  
             resposta = messagebox.askyesno("Confirmação", f"Confirma {' inclusão' if not id else 'alteração'} dessa organização?")
             if resposta:    
-                self.lista_organizacoes = self.repo_org.listar(True)
+                self.listar(True) 
                 if id == "":
                     messagebox.showinfo("Sucesso", f"Organização inserida com sucesso")
                     self.ctk_entry_var_filtro.set("")
-                    if (new_id != None):
-                        self.tree_view_organizacao_id_selecionado = new_id
+                    if (objects != None):
+                        self.tree_view_organizacao_id_selecionado = objects
                     else:
                         self.tree_view_organizacao_id_selecionado = self.lista_organizacoes[len(self.lista_organizacoes)-1]['id']
                 else:
@@ -182,7 +186,8 @@ class Organizacao():
                 self.update_tree_view() 
                 self.paginacao.verificar_pagina_item = False
                 
-            
+        else:
+            messagebox.showerror("Erro", objects)    
         
     def update_tree_view(self):
  
@@ -239,12 +244,12 @@ class Organizacao():
             values = self.tree_view_organizacao.item(item, 'values')
             self.tree_view_organizacao_id_selecionado = values[0]
             self.paginacao.tree_view_id_selecionado = self.tree_view_organizacao_id_selecionado
-            res = self.repo_org.buscar(self.tree_view_organizacao_id_selecionado, True)
-            if res != None:
+            sucesso, res = self.repo_org.buscar(self.tree_view_organizacao_id_selecionado, True)
+            if sucesso:
                 self.ctk_entry_var_id.set(res['id'])
                 self.ctk_entry_var_nome.set(res['nome'])
             else:
-                messagebox.showinfo("Atenção", f"O ID {id} não está presente na tabela")
+                messagebox.showinfo("Atenção", f"{res}. O ID {id} não está presente na tabela")
                         
     def filtrar_bind(self, event):
         self.filtrar()

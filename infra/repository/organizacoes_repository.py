@@ -21,30 +21,39 @@ class OrganizacoesRepository:
             
 
     def insert_update(self, id, nome):
-        org = self.buscar_nome(nome, True)
-        if (id == ""):
-            if (org != None):
-                return False, "Já existe uma organização com esse nome"
-            return self.insert(nome)
-        else:
-            if org != None and id != org['id']:
-                return False, "Já existe uma organização com esse nome"
-            return self.update(id, nome)
         
-  
-    def update(self, id, nome):
-      with DBConnectionHandler() as db:
+        with DBConnectionHandler() as db:
+            try:
+                data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome).one_or_none()
+                
+                if (id == ""):
+                    
+                    if (data != None):
+                        return False, "Já existe uma organização com esse nome"
+                    return self.insert(nome, db)
+                
+                else:
+                    
+                    if data != None and int(id) != int(data['id']):
+                        return False, "Já existe uma organização com esse nome"
+                    return self.update(id, nome, db)
+                
+            except Exception as exception:
+                db.session.rollback()
+                return False, exception        
+        
+        
+    def update(self, id, nome, db):
+
           try:
               db.session.query(Organizacoes).filter(Organizacoes.id == id).update({ "nome": nome })
               db.session.commit()
               return True, None
           except Exception as exception:
                 return False, exception
-          
             
-    def insert(self, nome):
-
-        with DBConnectionHandler() as db:
+            
+    def insert(self, nome, db):
             try:
                 query = text("SELECT nextval('pessoa_id_seq')")
                 result = db.session.execute(query)
@@ -61,7 +70,7 @@ class OrganizacoesRepository:
     def buscar(self, id, resposta=None):
         with DBConnectionHandler() as db:
             try:
-                data = db.session.query(Organizacoes).filter(Organizacoes.id==id).one()
+                data = db.session.query(Organizacoes).filter(Organizacoes.id==id).one_or_none()
                 if data == None:
                     return False, "Organização não encontrada"
                 
@@ -80,7 +89,7 @@ class OrganizacoesRepository:
     def buscar_nome(self, nome, resposta=None):
         with DBConnectionHandler() as db:
             try:
-                data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome).one()
+                data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome).one_or_none()
 
                 if data == None:
                     return False, "Organização não encontrada"

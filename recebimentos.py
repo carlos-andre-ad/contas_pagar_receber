@@ -1,7 +1,5 @@
 import customtkinter as ct
 import tkinter as tk
-from infra.entidade import contas_receber as cr
-from infra.entidade import pessoa
 from Utils import formatacao
 from Utils import paginacao as page
 from tkinter import ttk
@@ -20,10 +18,17 @@ class Recebimentos():
         self.tamanho_pagina    = int(os.getenv('TAMANHO_PAGINA'))
         super().__init__()
         
+    def listar(self, tupla):
+        self.repo_receitas = ReceitasRepository()
+        sucesso, self.lista_contas_receber = self.repo_receitas.listar(tupla)
+        if sucesso == False:
+            messagebox.showerror("Erro", self.lista_contas_receber)
+            self.lista_contas_receber = []
+        return sucesso        
+        
     def receber(self,frame_recebimento):
         
-        self.repo_receitas = ReceitasRepository()
-        self.lista_contas_receber = self.repo_receitas.listar(True)
+        self.listar(True)
         self.format = formatacao.Util()        
         
         self.nome_coluna_ordenar = "descricao" #ordenação default
@@ -93,7 +98,7 @@ class Recebimentos():
         self.ctk_entry_var_filtro = tk.StringVar()       
                 
         self.repo_org = OrganizacoesRepository()
-        organizacoes = self.repo_org.listar(True)
+        sucesso, organizacoes = self.repo_org.listar(True)
         
         self.frame_recebimento_combobox_organizacoes = ct.CTkComboBox(frame_recebimento, values=[item['nome'] for item in organizacoes], width=905,
                                                                         command=self.selecionar_organizacao, variable=self.ctk_combobox_var_organizacao)
@@ -203,7 +208,7 @@ class Recebimentos():
             id = str(self.ctk_entry_var_id.get())
             if (self.repo_receitas.delete(id)):
                 self.acao = 4
-                self.lista_contas_receber = self.repo_receitas.listar(True)                   
+                self.listar(True)                  
                 self.update_tree_view()         
             
     def salvar(self):
@@ -233,17 +238,16 @@ class Recebimentos():
             self.frame_recebimento_entry_valor.focus()
             return False
         
-        sucesso = self.repo_receitas.insert_update(id, desc, data_recb, valor, obs, org)
+        sucesso, objects = self.repo_receitas.insert_update(id, desc, data_recb, valor, obs, org)
         if (sucesso):  
             resposta = messagebox.askyesno("Confirmação", f"Confirma {' inclusão' if not id else 'alteração'} dessa receita?")
             if resposta:    
-                new_id =  self.repo_receitas.new_id
-                self.lista_contas_receber = self.repo_receitas.listar(True)
+                self.listar(True)
                 if id == "":
                     messagebox.showinfo("Sucesso", f"Receita inserida com sucesso")
                     self.ctk_entry_var_filtro.set("")
-                    if (new_id != None):
-                        self.tree_view_recebimento_id_selecionado = new_id
+                    if (objects != None):
+                        self.tree_view_recebimento_id_selecionado = objects
                     else:
                         self.tree_view_recebimento_id_selecionado = self.lista_contas_receber[len(self.lista_contas_receber)-1]['id']
                 else:
@@ -253,7 +257,8 @@ class Recebimentos():
                 self.acao = 3
                 self.update_tree_view() 
                 self.paginacao.verificar_pagina_item = False
-                
+        else:
+            messagebox.showerror("Erro", objects)                   
             
         
     def update_tree_view(self):
@@ -266,7 +271,11 @@ class Recebimentos():
             val = result['valor']
             vl_tot = vl_tot + float(val)
             result['valor'] = self.format.formatar_valor_real(float(val))
-                                
+            
+            data_recebimento = result['data_recebimento']
+            data_recebimento = data_recebimento.strftime("%d/%m/%Y")
+            result['data_recebimento'] = data_recebimento
+            
             result = list(result.values())
             #Para auxiliar no buscar
             self.data_filtro_original.append(result)  
@@ -317,12 +326,12 @@ class Recebimentos():
             values = self.tree_view_recebimento.item(item, 'values')
             self.tree_view_recebimento_id_selecionado = values[0]
             self.paginacao.tree_view_id_selecionado = self.tree_view_recebimento_id_selecionado
-            res = self.repo_receitas.buscar(self.tree_view_recebimento_id_selecionado, True)
-            if res != None:
+            sucesso, res = self.repo_receitas.buscar(self.tree_view_recebimento_id_selecionado, True)
+            if sucesso:
                 self.ctk_combobox_var_organizacao.set(res['organizacao'])
                 self.ctk_entry_var_id.set(res['id'])
                 self.ctk_entry_var_descricao.set(res['descricao'])
-                self.ctk_entry_var_data_receb.set(res['data_recebimento'])
+                self.ctk_entry_var_data_receb.set(res['data_recebimento'].strftime("%d/%m/%Y"))
                 self.ctk_entry_var_valor.set(res['valor'])
                 self.frame_recebimento_textbox_obs.configure(state=tk.NORMAL)
                 self.frame_recebimento_textbox_obs.delete("1.0", "end") 
@@ -330,7 +339,7 @@ class Recebimentos():
                     self.frame_recebimento_textbox_obs.insert("1.0", res['observacoes'])
                 self.frame_recebimento_textbox_obs.configure(state=tk.DISABLED)
             else:
-                messagebox.showinfo("Atenção", f"O ID {id} não está presente na tabela")
+                messagebox.showinfo("Atenção", f"{res}. O ID {id} não está presente na tabela")
                         
     def filtrar_bind(self, event):
         self.filtrar()

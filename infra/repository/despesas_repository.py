@@ -1,7 +1,9 @@
 from infra.configs.connection import DBConnectionHandler
 from infra.entities.despesas import Despesas
+from infra.entities.organizacoes import Organizacoes
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import text
+from datetime import datetime
 
 class DespesasRepository:
     def listar(self, resposta=None):
@@ -20,37 +22,49 @@ class DespesasRepository:
                 return False, exception
     
 
-    def insert_update(self, id, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes):
-        if (id == ""):
-            return self.insert(descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes)
-        else:
-            return self.update(id, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes)
+    def insert_update(self, id, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes, nome_org):
         
+        data_pagamento = datetime.strptime(data_pagamento, "%d/%m/%Y").strftime("%Y-%m-%d")
+        data_vencimento = datetime.strptime(data_vencimento, "%d/%m/%Y").strftime("%Y-%m-%d")    
+        
+        with DBConnectionHandler() as db:
+            data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome_org).one_or_none()   
+            if (data == None):
+                return False, f"Não foi possivel encontrar a organização {nome_org}"
+            else:
+                id_org = data.id           
+                if (id == ""):
+                    return self.insert(db, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes, id_org)
+                else:
+                    return self.update(db, id, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes, id_org)
+            
+    
   
-    def update(self, id, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes):
-      with DBConnectionHandler() as db:
+    def update(self, db,id, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes, id_org):
           try:
               db.session.query(Despesas).filter(Despesas.id == id).update({ 'descricao': descricao,
                                                                             'data_pagamento': data_pagamento,
                                                                             'data_vencimento': data_vencimento,
                                                                             'valor': valor,
                                                                             'valor_pago': valor_pago,
+                                                                            'id_organizacao' : id_org,
                                                                             'observacoes': observacoes })
               db.session.commit()
               return True, None
           except Exception as exception:
-                return False, exception
+              db.session.rollback()
+              return False, exception
           
             
-    def insert(self, descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes):
-
-        with DBConnectionHandler() as db:
+    def insert( self, db,descricao, data_pagamento, data_vencimento, valor, valor_pago, observacoes, id_org):
+        
             try:
                 query = text("SELECT nextval('contas_pagar_id_seq')")
                 result = db.session.execute(query)
                 id_seq = result.scalar()
                 data_isert = Despesas(id=id_seq, 
                                       descricao=descricao,
+                                      id_organizacao=id_org,
                                       data_pagamento=data_pagamento,
                                       data_vencimento=data_vencimento,
                                       valor=valor,
@@ -67,7 +81,7 @@ class DespesasRepository:
     def buscar(self, id, resposta=None):
         with DBConnectionHandler() as db:
             try:
-                data = db.session.query(Despesas).filter(Despesas.id==id).one()
+                data = db.session.query(Despesas).filter(Despesas.id==id).one_or_none()
                 
                 if data == None:
                     return False, None

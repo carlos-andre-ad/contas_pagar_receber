@@ -10,13 +10,13 @@ class DBConnectionHandler:
         load_dotenv()
            
         self.__connection_string = f"postgresql+psycopg2://{os.getenv('USER')}:{os.getenv('PASS')}@{os.getenv('HOST')}:{os.getenv('PORT')}/{os.getenv('NAME')}"
-        self.__engine = self.__create_database_engine()
+        self.__engine, self.metadata = self.__create_database_engine()
         self.session = None
 
     def __create_database_engine(self):
         engine = create_engine(self.__connection_string)
-        self.metadata = MetaData(bind=engine)
-        return engine
+        metadata = MetaData()
+        return engine, metadata
 
     def get_engine(self):
         return self.__engine
