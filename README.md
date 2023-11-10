@@ -20,7 +20,9 @@ pip install packaging
 
 
 ### Configurações
-- No arquivo .env altere os parâmetros de banco de dados
+- Clone o projeto na branch main para sua máquina
+- Renomear o arquivo .env-exemplo para .env
+- No arquivo .env altere os parâmetros de banco de dados para a conexão desejada
 
 ### Executar
 - Na pasta do programa digite:
