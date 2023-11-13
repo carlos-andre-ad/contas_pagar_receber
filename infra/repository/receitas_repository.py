@@ -4,6 +4,7 @@ from infra.entities.organizacoes import Organizacoes
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import text
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 
 class ReceitasRepository:
     def listar(self, resposta=None):
@@ -69,11 +70,12 @@ class ReceitasRepository:
                 db.session.rollback()
                 return False, exception
             
-            
+
     def buscar(self, id, resposta=None):
         with DBConnectionHandler() as db:
             try:
-                data = db.session.query(Receitas).filter(Receitas.id==id).one_or_none()
+                
+                data = db.session.query(Receitas).filter(Receitas.id == id).options(joinedload(Receitas.organizacao)).one_or_none()
                 
                 if data == None:
                     return False, None
@@ -104,16 +106,14 @@ class ReceitasRepository:
     def monta_dados(self,item, resposta):   
         if resposta == True:
             return {'id': item.id,
-                    'id_organizacao':item.id_organizacao,
-                    'organizacao': item.organizacao.nome,
+                    'organizacao': item.organizacao,
                     'descricao': item.descricao,
                     'data_recebimento': item.data_recebimento,
                     'valor': item.valor,
                     'observacoes': item.observacoes}
         else:
             return {item.id, 
-                    item.id_organizacao,
-                    item.organizacao.nome,
+                    item.organizacao,
                     item.descricao, 
                     item.data_recebimento,
                     item.valor,

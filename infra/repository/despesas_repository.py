@@ -3,6 +3,7 @@ from infra.entities.despesas import Despesas
 from infra.entities.organizacoes import Organizacoes
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import text
+from sqlalchemy.orm import joinedload
 from datetime import datetime
 
 class DespesasRepository:
@@ -81,7 +82,7 @@ class DespesasRepository:
     def buscar(self, id, resposta=None):
         with DBConnectionHandler() as db:
             try:
-                data = db.session.query(Despesas).filter(Despesas.id==id).one_or_none()
+                data = db.session.query(Despesas).filter(Despesas.id == id).options(joinedload(Despesas.organizacao)).one_or_none()
                 
                 if data == None:
                     return False, None
@@ -112,8 +113,7 @@ class DespesasRepository:
     def monta_dados(self,item, resposta):   
         if resposta == True:
             return {'id': item.id,
-                    'id_organizacao':item.id_organizacao,
-                    'organizacao': item.organizacao.nome,
+                    'organizacao': item.organizacao,
                     'descricao': item.descricao,
                     'data_pagamento': item.data_pagamento,
                     'data_vencimento': item.data_vencimento,
@@ -122,8 +122,7 @@ class DespesasRepository:
                     'observacoes': item.observacoes}
         else:
             return {item.id, 
-                    item.id_organizacao,
-                    item.organizacao.nome,
+                    item.organizacao,
                     item.descricao, 
                     item.data_pagamento,
                     item.data_vencimento,

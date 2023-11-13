@@ -50,32 +50,32 @@ class App(ct.CTk):
         self.ctk_entry_var_senha.set('123456')
         self.ctk_entry_var_email.set('admin@admin.com')
         # frame login
-        frame_login = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        frame_login.grid_columnconfigure(1, weight=1)
-        frame_login.grid(row=0, column=1, sticky="nsew")
+        self.frame_login = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.frame_login.grid_columnconfigure(1, weight=1)
+        self.frame_login.grid(row=0, column=1, sticky="nsew")
 
-        titulo_login = ct.CTkLabel(frame_login, text="Faça login para continuar", compound="left", font=ct.CTkFont(size=25, weight="bold"))
+        titulo_login = ct.CTkLabel(self.frame_login, text="Faça login para continuar", compound="left", font=ct.CTkFont(size=25, weight="bold"))
         titulo_login.grid(row=0, column=1, padx=5, pady=50, sticky="n")
         
-        lblEmail = ct.CTkLabel(frame_login, text="Email", compound="left", font=ct.CTkFont(size=14, weight="bold"))
+        lblEmail = ct.CTkLabel(self.frame_login, text="Email", compound="left", font=ct.CTkFont(size=14, weight="bold"))
         lblEmail.grid(row=1, column=1, padx=5, pady=1, sticky="n")          
         
-        inpEmail = ct.CTkEntry(frame_login, textvariable=self.ctk_entry_var_email, height=30, width=400, placeholder_text="Entre com email")
+        inpEmail = ct.CTkEntry(self.frame_login, textvariable=self.ctk_entry_var_email, height=30, width=400, placeholder_text="Entre com email")
         inpEmail.grid(row=2, column=1, padx=5, pady=1, sticky="n") 
         inpEmail.tabindex = 2
         inpEmail.bind("<Tab>", self.format.mover_foco)
         #inpEmail.bind("<Return>", self.verificar_login)
         
-        lblSenha = ct.CTkLabel(frame_login, text="Senha", compound="left", font=ct.CTkFont(size=14, weight="bold"))
+        lblSenha = ct.CTkLabel(self.frame_login, text="Senha", compound="left", font=ct.CTkFont(size=14, weight="bold"))
         lblSenha.grid(row=3, column=1, padx=5, pady=1, sticky="n")          
         
-        inpSenha = ct.CTkEntry(frame_login, textvariable=self.ctk_entry_var_senha, height=30, width=400, placeholder_text="Entre com a senha", show="*")
+        inpSenha = ct.CTkEntry(self.frame_login, textvariable=self.ctk_entry_var_senha, height=30, width=400, placeholder_text="Entre com a senha", show="*")
         inpSenha.grid(row=4, column=1, padx=5, pady=1, sticky="n") 
         inpSenha.tabindex = 3
         inpSenha.bind("<Tab>", self.format.mover_foco)
         #inpSenha.bind("<Return>", self.verificar_login)
         
-        btnLogar = ct.CTkButton(frame_login, text="Login", command=self.verificar_login, compound="right",  text_color=("gray10", "#DCE4EE"))
+        btnLogar = ct.CTkButton(self.frame_login, text="Login", command=self.verificar_login, compound="right",  text_color=("gray10", "#DCE4EE"))
         btnLogar.grid(row=5, column=1, padx=5, pady=5, sticky="n")
         
     def verificar_login(self):
@@ -132,10 +132,18 @@ class App(ct.CTk):
         
        # frame organização
         self.frame_organizacao = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.frame_organizacao.grid_columnconfigure(2, weight=1)          
+        self.frame_organizacao.grid_columnconfigure(2, weight=1)        
+        
+       # frame View PDF
+        self.frame_view_pdf = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.frame_view_pdf.grid_columnconfigure(0, weight=1)   
+        self.frame_view_pdf.grid_rowconfigure(1, weight=1)   
+        
+        self.frame_login.grid_forget()        
 
         # default frame
-        self.select_frame_by_name("pagar")
+        self.name_frame_selected = "pagar"
+        self.select_frame_by_name()
         
         self.menu_bar = tk.Menu(self)
         self.config(menu=self.menu_bar)
@@ -158,34 +166,34 @@ class App(ct.CTk):
             self.quit()  # Fecha a janela se o usuário confirmar             
         
     def button_pagagamento_event(self):
-        self.select_frame_by_name("pagar")    
+        self.name_frame_selected = "pagar"
+        self.select_frame_by_name()    
         
     def button_recebimento_event(self):
-        self.select_frame_by_name("receber") 
+        self.name_frame_selected = "receber"
+        self.select_frame_by_name() 
         
     def button_organizacao_event(self):
-        self.select_frame_by_name("organizacao")
+        self.name_frame_selected = "organizacao"
+        self.select_frame_by_name()        
         
-    def button_preview_pdf_event(self):
-        self.select_frame_by_name("previewpdf")          
-        
-    def select_frame_by_name(self, name):
-        self.button_pagamento.configure(fg_color=("gray75", "gray25") if name == "pagar" else "transparent")
-        self.button_recebimentos.configure(fg_color=("gray75", "gray25") if name == "receber" else "transparent")
-        self.button_organizacao.configure(fg_color=("gray75", "gray25") if name == "organizacao" else "transparent")
+    def select_frame_by_name(self):
+        self.button_pagamento.configure(fg_color=("gray75", "gray25") if self.name_frame_selected == "pagar" else "transparent")
+        self.button_recebimentos.configure(fg_color=("gray75", "gray25") if self.name_frame_selected == "receber" else "transparent")
+        self.button_organizacao.configure(fg_color=("gray75", "gray25") if self.name_frame_selected == "organizacao" else "transparent")
         
         self.frame_organizacao.grid_forget()
         self.frame_pagamento.grid_forget()
-        self.frame_recebimento.grid_forget() 
+        self.frame_recebimento.grid_forget()
+        self.frame_view_pdf.grid_forget()
         
-        if name == "organizacao":
+        if self.name_frame_selected == "organizacao":
             self.frame_organizacao.grid(row=0, column=1, sticky="nsew")
-            self.organizacao.organizacao(self.frame_organizacao,)
-           
-        if name == "pagar":
+            self.organizacao.organizacao(self.frame_organizacao, self)
+        if self.name_frame_selected == "pagar":
             self.frame_pagamento.grid(row=0, column=1, sticky="nsew")
             self.pagamentos.pagar(self.frame_pagamento)
-        if name == "receber":
+        if self.name_frame_selected == "receber":
             self.frame_recebimento.grid(row=0, column=1, sticky="nsew")
             self.recebimentos.receber(self.frame_recebimento)
 

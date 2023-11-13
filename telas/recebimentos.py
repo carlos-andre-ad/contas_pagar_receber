@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 from infra.repository.receitas_repository import ReceitasRepository
 from infra.repository.organizacoes_repository import OrganizacoesRepository
+from telas import pdfview, relatorios, toolbar
 
 
 class Recebimentos():
@@ -127,34 +128,10 @@ class Recebimentos():
         self.frame_recebimento_textbox_obs.tabindex = 5
         self.frame_recebimento_textbox_obs.bind("<Tab>", self.format.mover_foco)
         
-        
-        self.frame_recebimento_button_novo = ct.CTkButton(frame_recebimento, text="Novo", command=self.novo,  compound="right", text_color=("gray10", "#DCE4EE"))
-        self.frame_recebimento_button_novo.grid(row=5, column=1, padx=10, pady=5, sticky="w")
-        CTkToolTip(self.frame_recebimento_button_novo, delay=0.5, message="Nova receita", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
-        
-        self.frame_recebimento_button_altera = ct.CTkButton(frame_recebimento, text="Alterar", command=self.alterar,  compound="right", text_color=("gray10", "#DCE4EE"))
-        self.frame_recebimento_button_altera.grid(row=5, column=1, padx=155, pady=5, sticky="w")
-        CTkToolTip(self.frame_recebimento_button_altera, delay=0.5, message="Alterar receita", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")        
-        
-        self.frame_recebimento_button_cancelar = ct.CTkButton(frame_recebimento, text="Cancelar", command=self.cancelar,  compound="right", text_color=("gray10", "#DCE4EE"))
-        self.frame_recebimento_button_cancelar.grid(row=5, column=1, padx=300, pady=5, sticky="w")
-        CTkToolTip(self.frame_recebimento_button_cancelar, delay=0.5, message="Cancelar receita!", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")        
-        
-        self.frame_recebimento_button_salvar = ct.CTkButton(frame_recebimento, text="Salvar", command=self.salvar, compound="right", text_color=("gray10", "#DCE4EE"))
-        self.frame_recebimento_button_salvar.grid(row=5, column=1, padx=445, pady=5, sticky="w")   
-        CTkToolTip(self.frame_recebimento_button_salvar, delay=0.5, message="Salvar receita", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
-               
-        self.frame_recebimento_button_excluir = ct.CTkButton(frame_recebimento, text="Excluir", command=self.remover, compound="right",  text_color=("gray10", "#DCE4EE"))
-        self.frame_recebimento_button_excluir.grid(row=5, column=1, padx=590, pady=5, sticky="w")     
-        CTkToolTip(self.frame_recebimento_button_excluir, delay=0.5, message="Exclui receita selecionado!", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
-        
-        #INPUT FILTRAR
-        self.frame_label_filtro = ct.CTkLabel(frame_recebimento, text="Filtro:",  compound="left", font=ct.CTkFont(size=12, weight="bold"))
-        self.frame_label_filtro.grid(row=6, column=1, padx=630, pady=5 ,sticky="w")         
-        self.frame_entry_filtro = ct.CTkEntry(frame_recebimento, height=30, width=250, textvariable=self.ctk_entry_var_filtro)
-        self.frame_entry_filtro.grid(row=6, column=1, padx=675, pady=1, sticky="w")       
-        self.frame_entry_filtro.bind("<KeyRelease>", self.filtrar_bind)
-        
+        #BOTÕES DE AÇÃO    
+        bar = toolbar.toolbar() 
+        bar.botoes_acao(self, frame_recebimento, 80, 28, 5, 1, 'w', 5, 10, 95, 180, 265,350, 6, 1, 630, 5, "w",250, 30,675, 1)
+        # TREE
         self.tree_view_recebimento.grid(row=7, column=1, columnspan=4, rowspan=5, padx=10, pady=1, sticky="w")
         
         #TOTALIZADORES
@@ -162,20 +139,16 @@ class Recebimentos():
                                     height=30, width=150, state=tk.DISABLED, font=ct.CTkFont(size=14, weight="bold"))      
         valor_total.grid(row=20, column=1, padx=775, pady=1, sticky="w")   
         
-        if self.paginar_tree_view == 1:
-            self.first_button  = ct.CTkButton(frame_recebimento, text="Primeiro", command=self.primeira_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.next_button  = ct.CTkButton(frame_recebimento, text="Próximo", command=self.proxima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.prev_button = ct.CTkButton(frame_recebimento, text="Anterior", command=self.pagina_anterior, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.last_button  = ct.CTkButton(frame_recebimento, text="Último", command=self.ultima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.first_button.grid(row=20, column=1, padx=10, pady=1, sticky="w")
-            self.next_button.grid(row=20, column=1, padx=155, pady=1, sticky="w")
-            self.prev_button.grid(row=20, column=1, padx=300, pady=1, sticky="w")
-            self.last_button.grid(row=20, column=1, padx=445, pady=1, sticky="w")  
-     
+        #BOTOES DE NAVEGAÇÃO CRIADOS E CONFIGURADOS EM PAGINACAO
+        self.paginacao.navegacao(self,frame_recebimento, self.paginar_tree_view, 60, 28, 20, 1, "w",1, 10, 75, 140, 205, 300)
         
         self.acao = 6 #1=novo, #2=altera, 3=salvar, 4=deletar, 5=cancelar, 6=listar, 7=limpar
         self.update_tree_view()
         self.habilita_desabilita_entry(tk.DISABLED)
+        
+        
+    def imprimir(self):
+        pass        
 
     def alterar(self):
         self.acao = 2
@@ -276,7 +249,7 @@ class Recebimentos():
             data_recebimento = data_recebimento.strftime("%d/%m/%Y")
             result['data_recebimento'] = data_recebimento
             
-            result = list(result.values())
+            #result = list(result.values())
             #Para auxiliar no buscar
             self.data_filtro_original.append(result)  
 
@@ -326,17 +299,17 @@ class Recebimentos():
             values = self.tree_view_recebimento.item(item, 'values')
             self.tree_view_recebimento_id_selecionado = values[0]
             self.paginacao.tree_view_id_selecionado = self.tree_view_recebimento_id_selecionado
-            sucesso, res = self.repo_receitas.buscar(self.tree_view_recebimento_id_selecionado, True)
+            sucesso, res = self.repo_receitas.buscar(self.tree_view_recebimento_id_selecionado, None)
             if sucesso:
-                self.ctk_combobox_var_organizacao.set(res['organizacao'])
-                self.ctk_entry_var_id.set(res['id'])
-                self.ctk_entry_var_descricao.set(res['descricao'])
-                self.ctk_entry_var_data_receb.set(res['data_recebimento'].strftime("%d/%m/%Y"))
-                self.ctk_entry_var_valor.set(res['valor'])
+                self.ctk_combobox_var_organizacao.set(res.organizacao.nome)
+                self.ctk_entry_var_id.set(res.id)
+                self.ctk_entry_var_descricao.set(res.descricao)
+                self.ctk_entry_var_data_receb.set(res.data_recebimento.strftime("%d/%m/%Y"))
+                self.ctk_entry_var_valor.set(res.valor)
                 self.frame_recebimento_textbox_obs.configure(state=tk.NORMAL)
                 self.frame_recebimento_textbox_obs.delete("1.0", "end") 
-                if (res['observacoes'] != None and res['observacoes'] != ""):
-                    self.frame_recebimento_textbox_obs.insert("1.0", res['observacoes'])
+                if (res.observacoes != None and res.observacoes != ""):
+                    self.frame_recebimento_textbox_obs.insert("1.0", res.observacoes)
                 self.frame_recebimento_textbox_obs.configure(state=tk.DISABLED)
             else:
                 messagebox.showinfo("Atenção", f"{res}. O ID {id} não está presente na tabela")
@@ -349,8 +322,9 @@ class Recebimentos():
         if filtro:
             items = []
             for item in self.data_filtro_original:
-                if any(str(value).lower().find(filtro) != -1 for value in item):
-                    items.append(item)
+                novo_item = [item.get(atributo, None) for atributo in self.colunas_tree_view]
+                if any(str(value).lower().find(filtro) != -1 for value in novo_item):
+                    items.append(novo_item)
                     self.tree_view_recebimento_id_selecionado = items[0][0]
                     self.paginacao.tree_view_id_selecionado = self.tree_view_recebimento_id_selecionado
             self.atualizar_treeview(items)
@@ -473,11 +447,11 @@ class Recebimentos():
                 self.last_button.configure(state=tk.DISABLED)
 
         if self.acao == 1:#novo
-            self.frame_recebimento_button_novo.configure(state=tk.DISABLED)
-            self.frame_recebimento_button_altera.configure(state=tk.DISABLED)
-            self.frame_recebimento_button_excluir.configure(state=tk.DISABLED) 
-            self.frame_recebimento_button_cancelar.configure(state=tk.NORMAL)
-            self.frame_recebimento_button_salvar.configure(state=tk.NORMAL)
+            self.button_novo.configure(state=tk.DISABLED)
+            self.button_altera.configure(state=tk.DISABLED)
+            self.button_excluir.configure(state=tk.DISABLED) 
+            self.button_cancelar.configure(state=tk.NORMAL)
+            self.button_salvar.configure(state=tk.NORMAL)
             self.next_button.configure(state=tk.DISABLED)
             self.prev_button.configure(state=tk.DISABLED)
             self.first_button.configure(state=tk.DISABLED)
@@ -487,11 +461,11 @@ class Recebimentos():
             self.habilita_desabilita_entry(tk.NORMAL)
             
         if self.acao == 2:#altera
-            self.frame_recebimento_button_novo.configure(state=tk.DISABLED)
-            self.frame_recebimento_button_altera.configure(state=tk.DISABLED)
-            self.frame_recebimento_button_excluir.configure(state=tk.DISABLED) 
-            self.frame_recebimento_button_cancelar.configure(state=tk.NORMAL)
-            self.frame_recebimento_button_salvar.configure(state=tk.NORMAL)
+            self.button_novo.configure(state=tk.DISABLED)
+            self.button_altera.configure(state=tk.DISABLED)
+            self.button_excluir.configure(state=tk.DISABLED) 
+            self.button_cancelar.configure(state=tk.NORMAL)
+            self.button_salvar.configure(state=tk.NORMAL)
             self.next_button.configure(state=tk.DISABLED)
             self.prev_button.configure(state=tk.DISABLED)
             self.first_button.configure(state=tk.DISABLED)
@@ -501,29 +475,29 @@ class Recebimentos():
             self.habilita_desabilita_entry(tk.NORMAL)
             
         if self.acao == 3:#Salvar
-            self.frame_recebimento_button_novo.configure(state=tk.NORMAL)
-            self.frame_recebimento_button_altera.configure(state=tk.NORMAL)
-            self.frame_recebimento_button_excluir.configure(state=tk.NORMAL) 
-            self.frame_recebimento_button_cancelar.configure(state=tk.DISABLED)
-            self.frame_recebimento_button_salvar.configure(state=tk.DISABLED)            
+            self.button_novo.configure(state=tk.NORMAL)
+            self.button_altera.configure(state=tk.NORMAL)
+            self.button_excluir.configure(state=tk.NORMAL) 
+            self.button_cancelar.configure(state=tk.DISABLED)
+            self.button_salvar.configure(state=tk.DISABLED)            
             self.tree_view_recebimento.configure(selectmode="browse")
             self.frame_entry_filtro.configure(state=tk.NORMAL)            
             self.habilita_desabilita_entry(tk.DISABLED)
             self.atualizar_estado_botoes_paginacao()    
             
         if self.acao == 4:#deletar
-            self.frame_recebimento_button_novo.configure(state=tk.NORMAL)
-            self.frame_recebimento_button_cancelar.configure(state=tk.DISABLED)
-            self.frame_recebimento_button_salvar.configure(state=tk.DISABLED)       
+            self.button_novo.configure(state=tk.NORMAL)
+            self.button_cancelar.configure(state=tk.DISABLED)
+            self.button_salvar.configure(state=tk.DISABLED)       
             if len(self.tree_view_recebimento.get_children()) == 0:
                 self.limpar()              
             verifica = True                 
             
         if self.acao == 5:#cancelar
             self.limpar()
-            self.frame_recebimento_button_novo.configure(state=tk.NORMAL)
-            self.frame_recebimento_button_cancelar.configure(state=tk.DISABLED)
-            self.frame_recebimento_button_salvar.configure(state=tk.DISABLED)
+            self.button_novo.configure(state=tk.NORMAL)
+            self.button_cancelar.configure(state=tk.DISABLED)
+            self.button_salvar.configure(state=tk.DISABLED)
             self.tree_view_recebimento.configure(selectmode="browse")
             self.frame_entry_filtro.configure(state=tk.NORMAL)            
             self.habilita_desabilita_entry(tk.DISABLED)
@@ -533,19 +507,19 @@ class Recebimentos():
             
         if self.acao == 6 or verifica:
             verifica = False
-            self.frame_recebimento_button_salvar.configure(state=tk.DISABLED)
-            self.frame_recebimento_button_cancelar.configure(state=tk.DISABLED)
+            self.button_salvar.configure(state=tk.DISABLED)
+            self.button_cancelar.configure(state=tk.DISABLED)
             
             if len(self.tree_view_recebimento.get_children()) == 0:
-                self.frame_recebimento_button_excluir.configure(state=tk.DISABLED) 
-                self.frame_recebimento_button_altera.configure(state=tk.DISABLED)           
+                self.button_excluir.configure(state=tk.DISABLED) 
+                self.button_altera.configure(state=tk.DISABLED)           
             else:        
                 item = self.tree_view_recebimento.focus()
                 if item:
-                    self.frame_recebimento_button_excluir.configure(state=tk.NORMAL)
-                    self.frame_recebimento_button_altera.configure(state=tk.NORMAL)  
+                    self.button_excluir.configure(state=tk.NORMAL)
+                    self.button_altera.configure(state=tk.NORMAL)  
                 else:
-                    self.frame_recebimento_button_excluir.configure(state=tk.DISABLED)
-                    self.frame_recebimento_button_altera.configure(state=tk.DISABLED)  
+                    self.button_excluir.configure(state=tk.DISABLED)
+                    self.button_altera.configure(state=tk.DISABLED)  
             self.atualizar_estado_botoes_paginacao()        
            

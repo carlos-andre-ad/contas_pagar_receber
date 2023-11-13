@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
 import re
+import customtkinter as ct
+from CTkToolTip import *
 
 class PaginatedTreeView():
     
@@ -212,4 +214,21 @@ class PaginatedTreeView():
     def ordencao(self,alternar_ascendencia):
         self.ordem(alternar_ascendencia)
         self.ordenar_coluna()
+        
+    def navegacao(self, tela_paginacao,frame, paginar_tree_view=1,
+                  width=60, height=28, row=0, column=1, sticky='w', pady=1, padx_f=10, padx_n=75, padx_p=140, padx_l=205, padx_v=300):
+        if paginar_tree_view == 1:
+            tela_paginacao.first_button  = ct.CTkButton(frame, width=width, text="Primeiro", command=tela_paginacao.primeira_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
+            tela_paginacao.next_button  = ct.CTkButton(frame, width=width,text="Próximo", command=tela_paginacao.proxima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
+            tela_paginacao.prev_button = ct.CTkButton(frame,width=width, text="Anterior", command=tela_paginacao.pagina_anterior, compound="right",  text_color=("gray10", "#DCE4EE"))
+            tela_paginacao.last_button  = ct.CTkButton(frame, width=width, text="Último", command=tela_paginacao.ultima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
+            tela_paginacao.first_button.grid(row=row, column=column, padx=padx_f, pady=pady, sticky=sticky)
+            tela_paginacao.next_button.grid(row=row, column=column, padx=padx_n, pady=pady, sticky=sticky)
+            tela_paginacao.prev_button.grid(row=row, column=column, padx=padx_p, pady=pady, sticky=sticky)
+            tela_paginacao.last_button.grid(row=row, column=column, padx=padx_l, pady=pady, sticky=sticky) 
+            
+        frame_button_view_pdf = ct.CTkButton(frame, text="Visualização", command=tela_paginacao.imprimir, compound="right",  text_color=("gray10", "#DCE4EE"))
+        frame_button_view_pdf.grid(row=row, column=column, padx=padx_v, pady=pady, sticky=sticky)     
+        CTkToolTip(frame_button_view_pdf, delay=0.5, message="Visualizar Organizações", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")        
+                
 

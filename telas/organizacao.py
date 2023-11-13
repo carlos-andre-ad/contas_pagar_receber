@@ -8,8 +8,7 @@ from CTkToolTip import *
 from dotenv import load_dotenv
 import os
 from infra.repository.organizacoes_repository import OrganizacoesRepository
-from telas import pdfview
-from telas import relatorios
+from telas import pdfview, relatorios, toolbar
 class Organizacao():
     
     def __init__(self):
@@ -27,12 +26,12 @@ class Organizacao():
         return sucesso       
      
         
-    def organizacao(self, frame_organizacao):
-
+    def organizacao(self, frame_organizacao, root):
+        self.root = root
         self.listar(True)
         self.rels_pdf = relatorios.Relatorios(title_text="Cadastro de organizações")
         self.format = formatacao.Util()  
-        self.frame_organizacao = frame_organizacao
+        
         self.nome_coluna_ordenar = "nome" #ordenação default
         self.colunas_data   = [] # Nome das colunas do tipo data
         self.colunas_numericas = ["id"] # nome das colunas do tipo numérico
@@ -40,7 +39,7 @@ class Organizacao():
         self.ordenacao_colunas = {"id": "crescente", "nome": "crescente"}
         self.colunas_relatorio = ["Código", "Nome"]
         
-        self.tree_view_organizacao = ttk.Treeview(self.frame_organizacao)      
+        self.tree_view_organizacao = ttk.Treeview(frame_organizacao)      
         style = ttk.Style()
         style.configure("Treeview.Heading", font=('Arial bold', 10, "bold"))
         self.tree_view_organizacao['columns'] = tuple(self.colunas_tree_view)
@@ -48,7 +47,7 @@ class Organizacao():
         self.tree_view_organizacao.column("id",  width=60)
         self.tree_view_organizacao.column("nome",  width=850)
         self.tree_view_organizacao.heading("id", text="ID", command=lambda: self.ordenar_por_coluna_click_cabecalho("id"))
-        self.tree_view_organizacao.heading("nome", text="Nome", command=lambda: self.ordenar_por_coluna_click_cabecalho("descricao"))
+        self.tree_view_organizacao.heading("nome", text="Nome", command=lambda: self.ordenar_por_coluna_click_cabecalho("nome"))
         self.tree_view_organizacao.bind("<Button-1>", lambda event: self.on_item_double_click_bind(event)) 
         self.tree_view_organizacao.bind("<KeyPress>", lambda event: self.on_item_double_click_bind(event)) 
         self.tree_view_organizacao.tag_configure('orow', background='#EEEEEE')             
@@ -69,10 +68,10 @@ class Organizacao():
                                                 self.tree_view_organizacao_id_selecionado
                                                 )
         
-        self.label = ct.CTkLabel(self.frame_organizacao, text="Organizações", font=ct.CTkFont(size=25, weight="bold"))
+        self.label = ct.CTkLabel(frame_organizacao, text="Organizações", font=ct.CTkFont(size=25, weight="bold"))
         self.label.grid(row=0, column=1, padx=20, pady=10)        
 
-        self.frame_organizacao_label_nome = ct.CTkLabel(self.frame_organizacao, text="Nome:", compound="left", font=ct.CTkFont(size=12, weight="bold"))
+        self.frame_organizacao_label_nome = ct.CTkLabel(frame_organizacao, text="Nome:", compound="left", font=ct.CTkFont(size=12, weight="bold"))
         self.frame_organizacao_label_nome.grid(row=2, column=0, padx=10, pady=5, sticky="w")             
                 
         #INPUTS
@@ -80,57 +79,19 @@ class Organizacao():
         self.ctk_entry_var_id = tk.StringVar()
         self.ctk_entry_var_filtro = tk.StringVar()       
 
-        self.frame_organizacao_entry_nome = ct.CTkEntry(self.frame_organizacao, textvariable=self.ctk_entry_var_nome, height=30, width=905)
+        self.frame_organizacao_entry_nome = ct.CTkEntry(frame_organizacao, textvariable=self.ctk_entry_var_nome, height=30, width=905)
         self.frame_organizacao_entry_nome.grid(row=2, column=1, padx=10, pady=5, sticky="w") 
         self.frame_organizacao_entry_nome.tabindex = 1
         self.frame_organizacao_entry_nome.bind("<Tab>", self.format.mover_foco)
         
-        self.frame_organizacao_button_novo = ct.CTkButton(self.frame_organizacao, text="Novo", command=self.novo,  compound="right", text_color=("gray10", "#DCE4EE"))
-        self.frame_organizacao_button_novo.grid(row=5, column=1, padx=10, pady=5, sticky="w")
-        CTkToolTip(self.frame_organizacao_button_novo, delay=0.5, message="Nova organização", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
-        
-        self.frame_organizacao_button_altera = ct.CTkButton(self.frame_organizacao, text="Alterar", command=self.alterar,  compound="right", text_color=("gray10", "#DCE4EE"))
-        self.frame_organizacao_button_altera.grid(row=5, column=1, padx=155, pady=5, sticky="w")
-        CTkToolTip(self.frame_organizacao_button_altera, delay=0.5, message="Alterar organização", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")        
-        
-        self.frame_organizacao_button_cancelar = ct.CTkButton(self.frame_organizacao, text="Cancelar", command=self.cancelar,  compound="right", text_color=("gray10", "#DCE4EE"))
-        self.frame_organizacao_button_cancelar.grid(row=5, column=1, padx=300, pady=5, sticky="w")
-        CTkToolTip(self.frame_organizacao_button_cancelar, delay=0.5, message="Cancelar organização!", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")        
-        
-        self.frame_organizacao_button_salvar = ct.CTkButton(self.frame_organizacao, text="Salvar", command=self.salvar, compound="right", text_color=("gray10", "#DCE4EE"))
-        self.frame_organizacao_button_salvar.grid(row=5, column=1, padx=445, pady=5, sticky="w")   
-        CTkToolTip(self.frame_organizacao_button_salvar, delay=0.5, message="Salvar organização", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
-               
-        self.frame_organizacao_button_excluir = ct.CTkButton(self.frame_organizacao, text="Excluir", command=self.remover, compound="right",  text_color=("gray10", "#DCE4EE"))
-        self.frame_organizacao_button_excluir.grid(row=5, column=1, padx=590, pady=5, sticky="w")     
-        CTkToolTip(self.frame_organizacao_button_excluir, delay=0.5, message="Exclui organização selecionado!", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
-        
-        #INPUT FILTRAR
-        self.frame_label_filtro = ct.CTkLabel(self.frame_organizacao, text="Filtro:",  compound="left", font=ct.CTkFont(size=12, weight="bold"))
-        self.frame_label_filtro.grid(row=6, column=1, padx=630, pady=5 ,sticky="w")         
-        self.frame_entry_filtro = ct.CTkEntry(self.frame_organizacao, height=30, width=250, textvariable=self.ctk_entry_var_filtro)
-        self.frame_entry_filtro.grid(row=6, column=1, padx=675, pady=1, sticky="w")       
-        self.frame_entry_filtro.bind("<KeyRelease>", self.filtrar_bind)
-        
+        #BOTÕES DE AÇÃO    
+        bar = toolbar.toolbar() 
+        bar.botoes_acao(self, frame_organizacao, 80, 28, 5, 1, 'w', 5, 10, 95, 180, 265,350, 6, 1, 630, 5, "w",250, 30,675, 1)
+        # TREE
         self.tree_view_organizacao.grid(row=7, column=1, columnspan=4, rowspan=5, padx=10, pady=1, sticky="w")
+        #BOTOES DE NAVEGAÇÃO CRIADOS E CONFIGURADOS EM PAGINACAO
+        self.paginacao.navegacao(self,frame_organizacao, self.paginar_tree_view, 60, 28, 12, 1, "w",1, 10, 75, 140, 205, 300)
           
-        _row = 12
-        if self.paginar_tree_view == 1:
-            self.first_button  = ct.CTkButton(self.frame_organizacao, text="Primeiro", command=self.primeira_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.next_button  = ct.CTkButton(self.frame_organizacao, text="Próximo", command=self.proxima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.prev_button = ct.CTkButton(self.frame_organizacao, text="Anterior", command=self.pagina_anterior, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.last_button  = ct.CTkButton(self.frame_organizacao, text="Último", command=self.ultima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.first_button.grid(row=12, column=1, padx=10, pady=1, sticky="w")
-            self.next_button.grid(row=12, column=1, padx=155, pady=1, sticky="w")
-            self.prev_button.grid(row=12, column=1, padx=300, pady=1, sticky="w")
-            self.last_button.grid(row=12, column=1, padx=445, pady=1, sticky="w") 
-            _row = 13
-            
-        self.frame_organizacao_button_imprimir = ct.CTkButton(self.frame_organizacao, text="Imprimir", command=self.imprimir, compound="right",  text_color=("gray10", "#DCE4EE"))
-        self.frame_organizacao_button_imprimir.grid(row=_row, column=1, padx=800, pady=5, sticky="w")     
-        CTkToolTip(self.frame_organizacao_button_imprimir, delay=0.5, message="Visualizar Organizações", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")        
-        
-
         self.acao = 6 #1=novo, #2=altera, 3=salvar, 4=deletar, 5=cancelar, 6=listar, 7=limpar
         self.update_tree_view()
         self.habilita_desabilita_entry(tk.DISABLED)
@@ -148,9 +109,8 @@ class Organizacao():
        #self.frame_organizacao.grid_forget()
        
        # frame dos relatorios em pdf
- 
-       
-       view = pdfview.PDFView(self.rels_pdf.path)
+       self.root.frame_view_pdf.grid(row=0, column=1, sticky="nsew")
+       view = pdfview.PDFView(self.rels_pdf.path, self.root)
          
 
     def alterar(self):
@@ -224,12 +184,12 @@ class Organizacao():
         self.data_filtro_original = []
         for result in self.lista_organizacoes:
                                 
-            result = list(result.values())
+            #result = list(result.values())
             #Para auxiliar no buscar
             self.data_filtro_original.append(result)  
         
         if self.acao == 4:
-            self.tree_view_id_selecionado = 0
+            self.tree_view_organizacao_id_selecionado = 0
             self.paginacao.tree_view_id_selecionado = self.tree_view_organizacao_id_selecionado
             self.paginacao.verificar_pagina_item = False
         
@@ -271,10 +231,10 @@ class Organizacao():
             values = self.tree_view_organizacao.item(item, 'values')
             self.tree_view_organizacao_id_selecionado = values[0]
             self.paginacao.tree_view_id_selecionado = self.tree_view_organizacao_id_selecionado
-            sucesso, res = self.repo_org.buscar(self.tree_view_organizacao_id_selecionado, True)
+            sucesso, res = self.repo_org.buscar(self.tree_view_organizacao_id_selecionado, None)
             if sucesso:
-                self.ctk_entry_var_id.set(res['id'])
-                self.ctk_entry_var_nome.set(res['nome'])
+                self.ctk_entry_var_id.set(res.id)
+                self.ctk_entry_var_nome.set(res.nome)
             else:
                 messagebox.showinfo("Atenção", f"{res}. O ID {id} não está presente na tabela")
                         
@@ -286,12 +246,13 @@ class Organizacao():
         if filtro:
             items = []
             for item in self.data_filtro_original:
-                if any(str(value).lower().find(filtro) != -1 for value in item):
-                    items.append(item)
+                novo_item = [item.get(atributo, None) for atributo in self.colunas_tree_view]
+                if any(str(value).lower().find(filtro) != -1 for value in novo_item):
+                    items.append(novo_item)
                     self.tree_view_organizacao_id_selecionado = items[0][0]
                     self.paginacao.tree_view_id_selecionado = self.tree_view_organizacao_id_selecionado
             self.atualizar_treeview(items)
-                          
+
         else:
             #self.atualizar_treeview(self.data_filtro_original)
             self.monta_paginacao(False)
@@ -337,10 +298,11 @@ class Organizacao():
         self.paginacao.primeira_pagina()
         self.navegacao()   
         
+        
     def ultima_pagina(self):
         self.paginacao.ultima_pagina()  
         self.navegacao()
-        if len(self.tree_view_pagamento.get_children()) == 0:
+        if len(self.tree_view_organizacao.get_children()) == 0:
             self.pagina_anterior()
             self.last_button.configure(state=tk.DISABLED)
             self.last_button_state_origem =tk.DISABLED
@@ -391,11 +353,11 @@ class Organizacao():
                 self.last_button.configure(state=tk.DISABLED)
 
         if self.acao == 1:#novo
-            self.frame_organizacao_button_novo.configure(state=tk.DISABLED)
-            self.frame_organizacao_button_altera.configure(state=tk.DISABLED)
-            self.frame_organizacao_button_excluir.configure(state=tk.DISABLED) 
-            self.frame_organizacao_button_cancelar.configure(state=tk.NORMAL)
-            self.frame_organizacao_button_salvar.configure(state=tk.NORMAL)
+            self.button_novo.configure(state=tk.DISABLED)
+            self.button_altera.configure(state=tk.DISABLED)
+            self.button_excluir.configure(state=tk.DISABLED) 
+            self.button_cancelar.configure(state=tk.NORMAL)
+            self.button_salvar.configure(state=tk.NORMAL)
             self.next_button.configure(state=tk.DISABLED)
             self.prev_button.configure(state=tk.DISABLED)
             self.first_button.configure(state=tk.DISABLED)
@@ -405,11 +367,11 @@ class Organizacao():
             self.habilita_desabilita_entry(tk.NORMAL)
             
         if self.acao == 2:#altera
-            self.frame_organizacao_button_novo.configure(state=tk.DISABLED)
-            self.frame_organizacao_button_altera.configure(state=tk.DISABLED)
-            self.frame_organizacao_button_excluir.configure(state=tk.DISABLED) 
-            self.frame_organizacao_button_cancelar.configure(state=tk.NORMAL)
-            self.frame_organizacao_button_salvar.configure(state=tk.NORMAL)
+            self.button_novo.configure(state=tk.DISABLED)
+            self.button_altera.configure(state=tk.DISABLED)
+            self.button_excluir.configure(state=tk.DISABLED) 
+            self.button_cancelar.configure(state=tk.NORMAL)
+            self.button_salvar.configure(state=tk.NORMAL)
             self.next_button.configure(state=tk.DISABLED)
             self.prev_button.configure(state=tk.DISABLED)
             self.first_button.configure(state=tk.DISABLED)
@@ -419,29 +381,29 @@ class Organizacao():
             self.habilita_desabilita_entry(tk.NORMAL)
             
         if self.acao == 3:#Salvar
-            self.frame_organizacao_button_novo.configure(state=tk.NORMAL)
-            self.frame_organizacao_button_altera.configure(state=tk.NORMAL)
-            self.frame_organizacao_button_excluir.configure(state=tk.NORMAL) 
-            self.frame_organizacao_button_cancelar.configure(state=tk.DISABLED)
-            self.frame_organizacao_button_salvar.configure(state=tk.DISABLED)            
+            self.button_novo.configure(state=tk.NORMAL)
+            self.button_altera.configure(state=tk.NORMAL)
+            self.button_excluir.configure(state=tk.NORMAL) 
+            self.button_cancelar.configure(state=tk.DISABLED)
+            self.button_salvar.configure(state=tk.DISABLED)            
             self.tree_view_organizacao.configure(selectmode="browse")
             self.frame_entry_filtro.configure(state=tk.NORMAL)            
             self.habilita_desabilita_entry(tk.DISABLED)
             self.atualizar_estado_botoes_paginacao()    
             
         if self.acao == 4:#deletar
-            self.frame_organizacao_button_novo.configure(state=tk.NORMAL)
-            self.frame_organizacao_button_cancelar.configure(state=tk.DISABLED)
-            self.frame_organizacao_button_salvar.configure(state=tk.DISABLED)        
+            self.button_novo.configure(state=tk.NORMAL)
+            self.button_cancelar.configure(state=tk.DISABLED)
+            self.button_salvar.configure(state=tk.DISABLED)        
             if len(self.tree_view_organizacao.get_children()) == 0:
                 self.limpar()              
             verifica = True                 
             
         if self.acao == 5:#cancelar
             self.limpar()
-            self.frame_organizacao_button_novo.configure(state=tk.NORMAL)
-            self.frame_organizacao_button_cancelar.configure(state=tk.DISABLED)
-            self.frame_organizacao_button_salvar.configure(state=tk.DISABLED)
+            self.button_novo.configure(state=tk.NORMAL)
+            self.button_cancelar.configure(state=tk.DISABLED)
+            self.button_salvar.configure(state=tk.DISABLED)
             self.tree_view_organizacao.configure(selectmode="browse")
             self.frame_entry_filtro.configure(state=tk.NORMAL)            
             self.habilita_desabilita_entry(tk.DISABLED)
@@ -451,18 +413,18 @@ class Organizacao():
             
         if self.acao == 6 or verifica:
             verifica = False
-            self.frame_organizacao_button_salvar.configure(state=tk.DISABLED)
-            self.frame_organizacao_button_cancelar.configure(state=tk.DISABLED)
+            self.button_salvar.configure(state=tk.DISABLED)
+            self.button_cancelar.configure(state=tk.DISABLED)
             
             if len(self.tree_view_organizacao.get_children()) == 0:
-                self.frame_organizacao_button_excluir.configure(state=tk.DISABLED) 
-                self.frame_organizacao_button_altera.configure(state=tk.DISABLED)           
+                self.button_excluir.configure(state=tk.DISABLED) 
+                self.button_altera.configure(state=tk.DISABLED)           
             else:        
                 item = self.tree_view_organizacao.focus()
                 if item:
-                    self.frame_organizacao_button_excluir.configure(state=tk.NORMAL)
-                    self.frame_organizacao_button_altera.configure(state=tk.NORMAL)  
+                    self.button_excluir.configure(state=tk.NORMAL)
+                    self.button_altera.configure(state=tk.NORMAL)  
                 else:
-                    self.frame_organizacao_button_excluir.configure(state=tk.DISABLED)
-                    self.frame_organizacao_button_altera.configure(state=tk.DISABLED)  
+                    self.button_excluir.configure(state=tk.DISABLED)
+                    self.button_altera.configure(state=tk.DISABLED)  
             self.atualizar_estado_botoes_paginacao()        
