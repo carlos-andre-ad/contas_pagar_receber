@@ -2,14 +2,16 @@ import customtkinter as ct
 import tkinter as tk
 from Utils import formatacao
 from Utils import paginacao as page
-from tkinter import ttk
+from tkinter import ttk, filedialog
 from tkinter import messagebox
 from CTkToolTip import *
 from dotenv import load_dotenv
 import os
 from infra.repository.organizacoes_repository import OrganizacoesRepository
-
+from telas import pdfview
+from telas import relatorios
 class Organizacao():
+    
     def __init__(self):
         load_dotenv()
         self.paginar_tree_view = int(os.getenv('PAGINACAO'))
@@ -25,18 +27,20 @@ class Organizacao():
         return sucesso       
      
         
-    def organizacao(self,frame_organizacao):
+    def organizacao(self, frame_organizacao):
 
         self.listar(True)
-        self.format = formatacao.Util()   
-    
+        self.rels_pdf = relatorios.Relatorios(title_text="Cadastro de organizações")
+        self.format = formatacao.Util()  
+        self.frame_organizacao = frame_organizacao
         self.nome_coluna_ordenar = "nome" #ordenação default
         self.colunas_data   = [] # Nome das colunas do tipo data
         self.colunas_numericas = ["id"] # nome das colunas do tipo numérico
         self.colunas_tree_view  = ["id", "nome"] # colunas do tree view
-        self.ordenacao_colunas = {"id": "crescente", "nome": "crescente"}    
+        self.ordenacao_colunas = {"id": "crescente", "nome": "crescente"}
+        self.colunas_relatorio = ["Código", "Nome"]
         
-        self.tree_view_organizacao = ttk.Treeview(frame_organizacao)      
+        self.tree_view_organizacao = ttk.Treeview(self.frame_organizacao)      
         style = ttk.Style()
         style.configure("Treeview.Heading", font=('Arial bold', 10, "bold"))
         self.tree_view_organizacao['columns'] = tuple(self.colunas_tree_view)
@@ -65,10 +69,10 @@ class Organizacao():
                                                 self.tree_view_organizacao_id_selecionado
                                                 )
         
-        self.label = ct.CTkLabel(frame_organizacao, text="Organizações", font=ct.CTkFont(size=25, weight="bold"))
+        self.label = ct.CTkLabel(self.frame_organizacao, text="Organizações", font=ct.CTkFont(size=25, weight="bold"))
         self.label.grid(row=0, column=1, padx=20, pady=10)        
 
-        self.frame_organizacao_label_nome = ct.CTkLabel(frame_organizacao, text="Nome:", compound="left", font=ct.CTkFont(size=12, weight="bold"))
+        self.frame_organizacao_label_nome = ct.CTkLabel(self.frame_organizacao, text="Nome:", compound="left", font=ct.CTkFont(size=12, weight="bold"))
         self.frame_organizacao_label_nome.grid(row=2, column=0, padx=10, pady=5, sticky="w")             
                 
         #INPUTS
@@ -76,55 +80,78 @@ class Organizacao():
         self.ctk_entry_var_id = tk.StringVar()
         self.ctk_entry_var_filtro = tk.StringVar()       
 
-        self.frame_organizacao_entry_nome = ct.CTkEntry(frame_organizacao, textvariable=self.ctk_entry_var_nome, height=30, width=905)
+        self.frame_organizacao_entry_nome = ct.CTkEntry(self.frame_organizacao, textvariable=self.ctk_entry_var_nome, height=30, width=905)
         self.frame_organizacao_entry_nome.grid(row=2, column=1, padx=10, pady=5, sticky="w") 
         self.frame_organizacao_entry_nome.tabindex = 1
         self.frame_organizacao_entry_nome.bind("<Tab>", self.format.mover_foco)
         
-        self.frame_organizacao_button_novo = ct.CTkButton(frame_organizacao, text="Novo", command=self.novo,  compound="right", text_color=("gray10", "#DCE4EE"))
+        self.frame_organizacao_button_novo = ct.CTkButton(self.frame_organizacao, text="Novo", command=self.novo,  compound="right", text_color=("gray10", "#DCE4EE"))
         self.frame_organizacao_button_novo.grid(row=5, column=1, padx=10, pady=5, sticky="w")
         CTkToolTip(self.frame_organizacao_button_novo, delay=0.5, message="Nova organização", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
         
-        self.frame_organizacao_button_altera = ct.CTkButton(frame_organizacao, text="Alterar", command=self.alterar,  compound="right", text_color=("gray10", "#DCE4EE"))
+        self.frame_organizacao_button_altera = ct.CTkButton(self.frame_organizacao, text="Alterar", command=self.alterar,  compound="right", text_color=("gray10", "#DCE4EE"))
         self.frame_organizacao_button_altera.grid(row=5, column=1, padx=155, pady=5, sticky="w")
         CTkToolTip(self.frame_organizacao_button_altera, delay=0.5, message="Alterar organização", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")        
         
-        self.frame_organizacao_button_cancelar = ct.CTkButton(frame_organizacao, text="Cancelar", command=self.cancelar,  compound="right", text_color=("gray10", "#DCE4EE"))
+        self.frame_organizacao_button_cancelar = ct.CTkButton(self.frame_organizacao, text="Cancelar", command=self.cancelar,  compound="right", text_color=("gray10", "#DCE4EE"))
         self.frame_organizacao_button_cancelar.grid(row=5, column=1, padx=300, pady=5, sticky="w")
         CTkToolTip(self.frame_organizacao_button_cancelar, delay=0.5, message="Cancelar organização!", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")        
         
-        self.frame_organizacao_button_salvar = ct.CTkButton(frame_organizacao, text="Salvar", command=self.salvar, compound="right", text_color=("gray10", "#DCE4EE"))
+        self.frame_organizacao_button_salvar = ct.CTkButton(self.frame_organizacao, text="Salvar", command=self.salvar, compound="right", text_color=("gray10", "#DCE4EE"))
         self.frame_organizacao_button_salvar.grid(row=5, column=1, padx=445, pady=5, sticky="w")   
         CTkToolTip(self.frame_organizacao_button_salvar, delay=0.5, message="Salvar organização", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
                
-        self.frame_organizacao_button_excluir = ct.CTkButton(frame_organizacao, text="Excluir", command=self.remover, compound="right",  text_color=("gray10", "#DCE4EE"))
+        self.frame_organizacao_button_excluir = ct.CTkButton(self.frame_organizacao, text="Excluir", command=self.remover, compound="right",  text_color=("gray10", "#DCE4EE"))
         self.frame_organizacao_button_excluir.grid(row=5, column=1, padx=590, pady=5, sticky="w")     
         CTkToolTip(self.frame_organizacao_button_excluir, delay=0.5, message="Exclui organização selecionado!", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")
         
         #INPUT FILTRAR
-        self.frame_label_filtro = ct.CTkLabel(frame_organizacao, text="Filtro:",  compound="left", font=ct.CTkFont(size=12, weight="bold"))
+        self.frame_label_filtro = ct.CTkLabel(self.frame_organizacao, text="Filtro:",  compound="left", font=ct.CTkFont(size=12, weight="bold"))
         self.frame_label_filtro.grid(row=6, column=1, padx=630, pady=5 ,sticky="w")         
-        self.frame_entry_filtro = ct.CTkEntry(frame_organizacao, height=30, width=250, textvariable=self.ctk_entry_var_filtro)
+        self.frame_entry_filtro = ct.CTkEntry(self.frame_organizacao, height=30, width=250, textvariable=self.ctk_entry_var_filtro)
         self.frame_entry_filtro.grid(row=6, column=1, padx=675, pady=1, sticky="w")       
         self.frame_entry_filtro.bind("<KeyRelease>", self.filtrar_bind)
         
         self.tree_view_organizacao.grid(row=7, column=1, columnspan=4, rowspan=5, padx=10, pady=1, sticky="w")
           
-        
+        _row = 12
         if self.paginar_tree_view == 1:
-            self.first_button  = ct.CTkButton(frame_organizacao, text="Primeiro", command=self.primeira_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.next_button  = ct.CTkButton(frame_organizacao, text="Próximo", command=self.proxima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.prev_button = ct.CTkButton(frame_organizacao, text="Anterior", command=self.pagina_anterior, compound="right",  text_color=("gray10", "#DCE4EE"))
-            self.last_button  = ct.CTkButton(frame_organizacao, text="Último", command=self.ultima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
+            self.first_button  = ct.CTkButton(self.frame_organizacao, text="Primeiro", command=self.primeira_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
+            self.next_button  = ct.CTkButton(self.frame_organizacao, text="Próximo", command=self.proxima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
+            self.prev_button = ct.CTkButton(self.frame_organizacao, text="Anterior", command=self.pagina_anterior, compound="right",  text_color=("gray10", "#DCE4EE"))
+            self.last_button  = ct.CTkButton(self.frame_organizacao, text="Último", command=self.ultima_pagina, compound="right",  text_color=("gray10", "#DCE4EE"))
             self.first_button.grid(row=12, column=1, padx=10, pady=1, sticky="w")
             self.next_button.grid(row=12, column=1, padx=155, pady=1, sticky="w")
             self.prev_button.grid(row=12, column=1, padx=300, pady=1, sticky="w")
-            self.last_button.grid(row=12, column=1, padx=445, pady=1, sticky="w")  
-     
+            self.last_button.grid(row=12, column=1, padx=445, pady=1, sticky="w") 
+            _row = 13
+            
+        self.frame_organizacao_button_imprimir = ct.CTkButton(self.frame_organizacao, text="Imprimir", command=self.imprimir, compound="right",  text_color=("gray10", "#DCE4EE"))
+        self.frame_organizacao_button_imprimir.grid(row=_row, column=1, padx=800, pady=5, sticky="w")     
+        CTkToolTip(self.frame_organizacao_button_imprimir, delay=0.5, message="Visualizar Organizações", font=ct.CTkFont(size=14, weight="bold"), border_color="#FC9727", bg_color="#FC9727", text_color="#000")        
         
+
         self.acao = 6 #1=novo, #2=altera, 3=salvar, 4=deletar, 5=cancelar, 6=listar, 7=limpar
         self.update_tree_view()
         self.habilita_desabilita_entry(tk.DISABLED)
+        
+    def imprimir(self):
+       
+       s, lista = self.repo_org.listar(None)
+       data = [self.colunas_relatorio]
+       for p in lista:
+           data.append([f"{p.id}", f"{p.nome}"])      
+           
+       self.rels_pdf.add_table(data=data)
+       self.rels_pdf.build()
+         
+       #self.frame_organizacao.grid_forget()
+       
+       # frame dos relatorios em pdf
+ 
+       
+       view = pdfview.PDFView(self.rels_pdf.path)
+         
 
     def alterar(self):
         self.acao = 2

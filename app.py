@@ -1,9 +1,9 @@
 import customtkinter as ct
 import tkinter as tk
 import os
-import pagamentos as PAG
-import recebimentos as REC
-import organizacao as ORG
+from telas import pagamentos as PAG
+from telas import recebimentos as REC
+from telas import organizacao as ORG
 from Utils import formatacao
 from infra.repository.usuarios_repository import UsuariosRepository
 from tkinter import messagebox
@@ -133,7 +133,7 @@ class App(ct.CTk):
        # frame organização
         self.frame_organizacao = ct.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.frame_organizacao.grid_columnconfigure(2, weight=1)          
-           
+
         # default frame
         self.select_frame_by_name("pagar")
         
@@ -164,7 +164,10 @@ class App(ct.CTk):
         self.select_frame_by_name("receber") 
         
     def button_organizacao_event(self):
-        self.select_frame_by_name("organizacao")          
+        self.select_frame_by_name("organizacao")
+        
+    def button_preview_pdf_event(self):
+        self.select_frame_by_name("previewpdf")          
         
     def select_frame_by_name(self, name):
         self.button_pagamento.configure(fg_color=("gray75", "gray25") if name == "pagar" else "transparent")
@@ -177,15 +180,16 @@ class App(ct.CTk):
         
         if name == "organizacao":
             self.frame_organizacao.grid(row=0, column=1, sticky="nsew")
-            self.organizacao.organizacao(self.frame_organizacao)
+            self.organizacao.organizacao(self.frame_organizacao,)
+           
         if name == "pagar":
             self.frame_pagamento.grid(row=0, column=1, sticky="nsew")
             self.pagamentos.pagar(self.frame_pagamento)
         if name == "receber":
             self.frame_recebimento.grid(row=0, column=1, sticky="nsew")
-            self.recebimentos.receber(self.frame_recebimento)     
-        
-        
+            self.recebimentos.receber(self.frame_recebimento)
+
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()        
