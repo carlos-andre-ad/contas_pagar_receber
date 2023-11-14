@@ -27,8 +27,8 @@ class Recebimentos():
             self.lista_contas_receber = []
         return sucesso        
         
-    def receber(self,frame_recebimento):
-        
+    def receber(self,frame_recebimento, root):
+        self.root = root
         self.listar(True)
         self.format = formatacao.Util()        
         

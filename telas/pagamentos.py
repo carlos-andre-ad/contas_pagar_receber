@@ -16,7 +16,7 @@ class Pagamentos():
         load_dotenv()
         self.paginar_tree_view = int(os.getenv('PAGINACAO'))
         self.tamanho_pagina    = int(os.getenv('TAMANHO_PAGINA'))
-        self.listar(self)
+        #self.listar(self)
         super().__init__()
         
     def listar(self, tupla):
@@ -27,10 +27,10 @@ class Pagamentos():
             self.lista_contas_pagar = []
         return sucesso
         
-    def pagar(self,frame_pagamento):
-        
+    def pagar(self,frame_pagamento, root):
+        self.root = root
         self.format = formatacao.Util()    
-        
+        self.rels_pdf = relatorios.Relatorios(title_text="Despesas")
         self.listar(True)
         
         self.nome_coluna_ordenar = "descricao" #ordenação default
@@ -38,6 +38,7 @@ class Pagamentos():
         self.colunas_numericas = ["id", "valor", "valor_pago"] # nome das colunas do tipo numérico
         self.colunas_tree_view  = ["id", "descricao", "data_pagamento", "data_vencimento","valor","valor_pago"] # colunas do tree view
         self.ordenacao_colunas = {"id": "crescente", "descricao": "crescente", "data_pagamento": "crescente", "data_vencimento": "crescente", "valor": "crescente", "valor_pago": "crescente"}        
+        self.colunas_relatorio = ["Código", "Descrição", "Vencimento", "Pagamento", "Valor", "Pago"]
         
         self.tree_view_pagamento = ttk.Treeview(frame_pagamento)      
         style = ttk.Style()
@@ -177,7 +178,17 @@ class Pagamentos():
         self.habilita_desabilita_entry(tk.DISABLED)
 
     def imprimir(self):
-        pass
+       
+       s, lista = self.repo_despesas.listar(None)
+       data = [self.colunas_relatorio]
+       for p in lista:   
+           data.append([f"{p.id}", f"{p.descricao}", f"{p.data_vencimento}", f"{p.data_pagamento}", f"{p.valor}", f"{p.valor_pago}"])      
+           
+       self.rels_pdf.add_table(data=data, colWidths=[1, 2, 1, 1, 1, 1])
+       self.rels_pdf.build()
+         
+       self.root.frame_view_pdf.grid(row=0, column=1, sticky="nsew")
+       view = pdfview.PDFView(self.rels_pdf.path, self.root)
     
     def alterar(self):
         self.acao = 2

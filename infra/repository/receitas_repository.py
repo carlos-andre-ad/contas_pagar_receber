@@ -1,25 +1,38 @@
 from infra.configs.connection import DBConnectionHandler
 from infra.entities.receitas import Receitas
 from infra.entities.organizacoes import Organizacoes
+from infra.configs.log import LogApp
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import text
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 
 class ReceitasRepository:
+    def __init__(self) -> None:
+        self.log = LogApp("ReceitasRepository")
+            
     def listar(self, resposta=None):
         with DBConnectionHandler() as db:
             try:
                 data = db.session.query(Receitas).all()
                 if data == None:
-                    return True, []
-                if (resposta == None):
-                    return True, data
-                else:
-                   return True, [ self.monta_dados(item,resposta) for item in data]
+                    r=True 
+                    d=[]
+                else:                
+                    if (resposta == None):
+                        r=True 
+                        d=data
+                    else:
+                        r=True
+                        d=[ self.monta_dados(item,resposta) for item in data]
+                
+                self.log.logg(metodo="listar()", tipo_mensagem="i")
+                
+                return r, d
 
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
     
 
@@ -30,7 +43,9 @@ class ReceitasRepository:
         with DBConnectionHandler() as db:
             data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome_org).one_or_none()   
             if (data == None):
-                return False, f"Não foi possivel encontrar a organização {nome_org}"
+                msg = f"Não foi possivel encontrar a organização {nome_org}"
+                self.log.logg(metodo=f"insert_update({id})", mensagem=msg, tipo_mensagem="w")
+                return False, msg
             else:   
                 id_org = data.id           
                 if (id == ""):
@@ -47,9 +62,11 @@ class ReceitasRepository:
                                                                             'valor': valor,
                                                                             'observacoes': observacoes })
               db.session.commit()
+              self.log.logg(metodo=f"update({id})", tipo_mensagem="i")
               return True, None
           except Exception as exception:
-                return False, exception
+              self.log.logg(mensagem=exception,tipo_mensagem="e")
+              return False, exception
           
             
     def insert(self, db, descricao, data_recebimento, valor, observacoes, id_org):
@@ -65,9 +82,11 @@ class ReceitasRepository:
                                       observacoes=observacoes)
                 db.session.add(data_isert)
                 db.session.commit()
+                self.log.logg(metodo=f"insert({iid_seqd})", tipo_mensagem="i")
                 return True, id_seq
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
             
 
@@ -78,17 +97,23 @@ class ReceitasRepository:
                 data = db.session.query(Receitas).filter(Receitas.id == id).options(joinedload(Receitas.organizacao)).one_or_none()
                 
                 if data == None:
-                    return False, None
-                
-                if (resposta == None):
-                    return True, data
+                    r=False
+                    d=None
                 else:
-                    return True, self.monta_dados(data,resposta)
-                                        
-            except NoResultFound:
-                return False, None
-            except Exception as e:
+                    if (resposta == None):
+                        r=True
+                        d=data
+                    else:
+                        r=True
+                        d=self.monta_dados(data,resposta)
+                        
+                self.log.logg(metodo=f"buscar({id})", tipo_mensagem="i")
+                
+                return r, d
+            
+            except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, None
             
             
@@ -97,9 +122,11 @@ class ReceitasRepository:
             try:
                 db.session.query(Receitas).filter(Receitas.id == id).delete()
                 db.session.commit()
+                self.log.logg(metodo=f"delete({id})", tipo_mensagem="i")
                 return True, None
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
 
 

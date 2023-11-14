@@ -1,25 +1,39 @@
 from infra.configs.connection import DBConnectionHandler
 from infra.entities.despesas import Despesas
 from infra.entities.organizacoes import Organizacoes
+from infra.configs.log import LogApp
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import text
 from sqlalchemy.orm import joinedload
 from datetime import datetime
 
 class DespesasRepository:
+    def __init__(self) -> None:
+        self.log = LogApp("DespesasRepository")
+        
     def listar(self, resposta=None):
+
         with DBConnectionHandler() as db:
             try:
                 data = db.session.query(Despesas).all()
                 if data == None:
-                    return True, []
-                if (resposta == None):
-                    return True, data
-                else:
-                   return True, [ self.monta_dados(item,resposta) for item in data]
+                    r=True 
+                    d=[]
+                else:                
+                    if (resposta == None):
+                        r=True 
+                        d=data
+                    else:
+                        r=True
+                        d=[ self.monta_dados(item,resposta) for item in data]
+                
+                self.log.logg(metodo="listar()", tipo_mensagem="i")
+                
+                return r, d
 
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
     
 
@@ -31,7 +45,9 @@ class DespesasRepository:
         with DBConnectionHandler() as db:
             data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome_org).one_or_none()   
             if (data == None):
-                return False, f"Não foi possivel encontrar a organização {nome_org}"
+                msg = f"Não foi possivel encontrar a organização {nome_org}"
+                self.log.logg(metodo=f"insert_update({id})", mensagem=msg, tipo_mensagem="w")
+                return False, msg
             else:
                 id_org = data.id           
                 if (id == ""):
@@ -51,9 +67,11 @@ class DespesasRepository:
                                                                             'id_organizacao' : id_org,
                                                                             'observacoes': observacoes })
               db.session.commit()
+              self.log.logg(metodo=f"update({id})", tipo_mensagem="i")
               return True, None
           except Exception as exception:
               db.session.rollback()
+              self.log.logg(mensagem=exception,tipo_mensagem="e")
               return False, exception
           
             
@@ -73,9 +91,11 @@ class DespesasRepository:
                                       observacoes=observacoes)
                 db.session.add(data_isert)
                 db.session.commit()
+                self.log.logg(metodo=f"insert({id_seq})", tipo_mensagem="i")
                 return True, id_seq
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
             
             
@@ -85,17 +105,23 @@ class DespesasRepository:
                 data = db.session.query(Despesas).filter(Despesas.id == id).options(joinedload(Despesas.organizacao)).one_or_none()
                 
                 if data == None:
-                    return False, None
-                
-                if (resposta == None):
-                    return True, data
+                    r=False
+                    d=None
                 else:
-                    return True, self.monta_dados(data,resposta)
+                    if (resposta == None):
+                        r=True
+                        d=data
+                    else:
+                        r=True
+                        d=self.monta_dados(data,resposta)
+                        
+                self.log.logg(metodo=f"buscar({id})", tipo_mensagem="i")
+                
+                return r, d
                                         
-            except NoResultFound:
-                return False, None
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
             
             
@@ -104,9 +130,11 @@ class DespesasRepository:
             try:
                 db.session.query(Despesas).filter(Despesas.id == id).delete()
                 db.session.commit()
+                self.log.logg(metodo=f"delete({id})", tipo_mensagem="i")
                 return True, None
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
 
 

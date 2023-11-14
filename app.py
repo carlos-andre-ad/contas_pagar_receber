@@ -181,21 +181,23 @@ class App(ct.CTk):
         self.button_pagamento.configure(fg_color=("gray75", "gray25") if self.name_frame_selected == "pagar" else "transparent")
         self.button_recebimentos.configure(fg_color=("gray75", "gray25") if self.name_frame_selected == "receber" else "transparent")
         self.button_organizacao.configure(fg_color=("gray75", "gray25") if self.name_frame_selected == "organizacao" else "transparent")
-        
+
         self.frame_organizacao.grid_forget()
         self.frame_pagamento.grid_forget()
         self.frame_recebimento.grid_forget()
         self.frame_view_pdf.grid_forget()
-        
+
         if self.name_frame_selected == "organizacao":
             self.frame_organizacao.grid(row=0, column=1, sticky="nsew")
             self.organizacao.organizacao(self.frame_organizacao, self)
+
         if self.name_frame_selected == "pagar":
             self.frame_pagamento.grid(row=0, column=1, sticky="nsew")
-            self.pagamentos.pagar(self.frame_pagamento)
+            self.pagamentos.pagar(self.frame_pagamento, self)
+
         if self.name_frame_selected == "receber":
             self.frame_recebimento.grid(row=0, column=1, sticky="nsew")
-            self.recebimentos.receber(self.frame_recebimento)
+            self.recebimentos.receber(self.frame_recebimento, self)
 
 
 if __name__ == "__main__":

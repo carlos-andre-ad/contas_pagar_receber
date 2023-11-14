@@ -1,22 +1,34 @@
 from infra.configs.connection import DBConnectionHandler
 from infra.entities.organizacoes import Organizacoes
+from infra.configs.log import LogApp
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import text
 
 class OrganizacoesRepository:
+    def __init__(self) -> None:
+        self.log = LogApp("OrganizacoesRepository")    
     
     def listar(self, resposta=None):
         with DBConnectionHandler() as db:
             try:
                 data = db.session.query(Organizacoes).all()
                 if data == None:
-                    return True, []
-                if (resposta == None):
-                    return True, data
-                else:
-                    return True, [ self.monta_dados(item,resposta) for item in data]
+                    r=True 
+                    d=[]
+                else:                
+                    if (resposta == None):
+                        r=True 
+                        d=data
+                    else:
+                        r=True
+                        d=[ self.monta_dados(item,resposta) for item in data]
+                
+                self.log.logg(metodo="listar()", tipo_mensagem="i")
+                return r, d
+            
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
             
 
@@ -25,21 +37,30 @@ class OrganizacoesRepository:
         with DBConnectionHandler() as db:
             try:
                 data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome).one_or_none()
-                
+                msg = "Já existe uma organização com esse nome"
                 if (id == ""):
                     
                     if (data != None):
-                        return False, "Já existe uma organização com esse nome"
+                        
+                        self.log.logg(metodo="insert_update()", mensagem=msg ,tipo_mensagem="w")
+                        
+                        return False, msg
+                    
                     return self.insert(nome, db)
                 
                 else:
                     
                     if data != None and int(id) != int(data['id']):
-                        return False, "Já existe uma organização com esse nome"
+                        
+                        self.log.logg(metodo="insert_update()", mensagem=msg ,tipo_mensagem="w")
+                        
+                        return False, msg
+                    
                     return self.update(id, nome, db)
                 
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception        
         
         
@@ -48,8 +69,10 @@ class OrganizacoesRepository:
           try:
               db.session.query(Organizacoes).filter(Organizacoes.id == id).update({ "nome": nome })
               db.session.commit()
+              self.log.logg(metodo=f"update({id})", tipo_mensagem="i")
               return True, None
           except Exception as exception:
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
             
             
@@ -61,9 +84,11 @@ class OrganizacoesRepository:
                 data_isert = Organizacoes(id=id_seq, nome=nome)
                 db.session.add(data_isert)
                 db.session.commit()
+                self.log.logg(metodo=f"insert({id_seq})", tipo_mensagem="i")
                 return True, id_seq
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
             
             
@@ -71,18 +96,28 @@ class OrganizacoesRepository:
         with DBConnectionHandler() as db:
             try:
                 data = db.session.query(Organizacoes).filter(Organizacoes.id==id).one_or_none()
+                msg = "Sucesso"
+                tipo_mensagem = "i"                
                 if data == None:
-                    return False, "Organização não encontrada"
-                
-                if (resposta == None):
-                    return True, data
+                    r=False, 
+                    d=msg
+                    tipo_mensagem = "w" 
+                    msg = "Organização não encontrada"
                 else:
-                    return True, self.monta_dados(data,resposta)
-                                        
-            except NoResultFound:
-                return False, "Organização não encontrada"
+                    if (resposta == None):
+                        r=True, 
+                        d=data
+                    else:
+                        r=True, 
+                        d=self.monta_dados(data,resposta)
+                        
+                self.log.logg(metodo=f"buscar({id})", mensagem=msg, tipo_mensagem=tipo_mensagem)
+                                            
+                return r, d
+            
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
 
   
@@ -90,19 +125,28 @@ class OrganizacoesRepository:
         with DBConnectionHandler() as db:
             try:
                 data = db.session.query(Organizacoes).filter(Organizacoes.nome==nome).one_or_none()
-
+                msg = "Sucesso"
+                tipo_mensagem = "i"                
                 if data == None:
-                    return False, "Organização não encontrada"
-
-                if (resposta == None):
-                    return True, data
+                    r=False, 
+                    d=msg
+                    tipo_mensagem = "w" 
+                    msg = "Organização não encontrada"
                 else:
-                    return True, self.monta_dados(data,resposta)
+                    if (resposta == None):
+                        r=True, 
+                        d=data
+                    else:
+                        r=True, 
+                        d=self.monta_dados(data,resposta)
+                        
+                self.log.logg(metodo=f"buscar({nome})", mensagem=msg, tipo_mensagem=tipo_mensagem)
 
-            except NoResultFound:
-                return False, "Organização não encontrada"
+                return r, d
+            
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
             
             
@@ -114,6 +158,7 @@ class OrganizacoesRepository:
                 return True,None
             except Exception as exception:
                 db.session.rollback()
+                self.log.logg(mensagem=exception,tipo_mensagem="e")
                 return False, exception
 
     def monta_dados(self,item, resposta):   

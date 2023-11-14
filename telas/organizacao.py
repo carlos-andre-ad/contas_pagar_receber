@@ -25,7 +25,6 @@ class Organizacao():
             self.lista_organizacoes = []
         return sucesso       
      
-        
     def organizacao(self, frame_organizacao, root):
         self.root = root
         self.listar(True)
@@ -103,12 +102,9 @@ class Organizacao():
        for p in lista:
            data.append([f"{p.id}", f"{p.nome}"])      
            
-       self.rels_pdf.add_table(data=data)
+       self.rels_pdf.add_table(data=data, colWidths=[1, 3])
        self.rels_pdf.build()
          
-       #self.frame_organizacao.grid_forget()
-       
-       # frame dos relatorios em pdf
        self.root.frame_view_pdf.grid(row=0, column=1, sticky="nsew")
        view = pdfview.PDFView(self.rels_pdf.path, self.root)
          
